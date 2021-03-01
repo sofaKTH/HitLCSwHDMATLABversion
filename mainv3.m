@@ -28,7 +28,8 @@ fprintf(fileID, ' Abstraction \t %f\t %f\n', pt2,pt2b);
 %Partition
 time0=cputime;
 figure;
-agent=partition_viz_simple(T, env,2,envAut,T2); % contains the plot
+Ttot={T,T2}; envTot={env, envAut};
+partition_viz_simple(Ttot, envTot,1); % contains the plot
 pt3=cputime-time0;
 fprintf(fileID, ' Visualization of Workspace \t %f\n', pt3);
 %% TAhd
@@ -111,7 +112,7 @@ a1.Init.dd=0; a2.Init.dd=0;a1.Init.dc=0; a2.Init.dc=0;
 T1max=dT*5; T2max=dT+0.001;a1.Init.dh=0;a2.Init.dh=0;
 xltot=[x1]; ttot=[0];xltot2=[x2]; ttot2=[0];dummy=1;
 
-partition_viz_simple(T, env,1,2,envAut,T2);
+partition_viz_simple({T,T2}, {env,envAut},1,'Online Run');
 
 while compl~=1
     pi1curr=P.S(follow1(end),1);
@@ -414,8 +415,8 @@ TIME={ttot, ttot2}; Tb={T, T2}; envb={env2, envAut};
  %% animate final
  r=0.1;ColOr={[0.9100    0.4100    0.1700],[1 0 1]}; del=10;
  stamp=datestr(now,'mmddHHMM');
- stamp='06121420';
- for step=1:del:91 %length(X{2})+3
+ stamp='4Animation';
+ for step=1:del:length(X{2})+3
      f=figure;
      XI={x1init(1,:),x2init(1,:)}; YI={x1init(2,:), x2init(2,:)}; 
      XL={xl1init(1,:), xl2init(1,:)};YL={xl1init(2,:), xl2init(2,:)};
@@ -449,6 +450,7 @@ TIME={ttot, ttot2}; Tb={T, T2}; envb={env2, envAut};
      end
      saveas(f,['figures/FIG' stamp int2str(step)],'png');
  end
+ close all;
  
  %% initial paths plotted
  X={x1init(1,:),x2init(1,:)}; Y={x1init(2,:), x2init(2,:)}; 

@@ -26,10 +26,8 @@ laps=0; Astar=cell(length(path)-1,1);Bstar=cell(length(path)-1,1);
 FigHandle=figure(1);
 hold on
 FigHandle.Position=[100, 100, 1000, 500]; %FigHandle.InnerPosition= [100, 100, 800, 300];
-if agents==1 && base==0
-    partition_viz_simple(T, env,0);
-elseif base==0
-    partition_viz_simple(T,env,0,2,envAut,T2);
+if base==0
+    partition_viz_simple({T,T2},{env,envAut},0,'Online Run');
 end
 hold on
 x=[x0(1)];y=[x0(2)];xl=x; yl=y; Time=[0];tsteps=[0];

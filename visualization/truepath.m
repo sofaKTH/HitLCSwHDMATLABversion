@@ -1,7 +1,7 @@
 function [  ] = truepath(env, gS, T, path_WTS,x0 )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
-if nargin==5
+if nargin==4
     x0=env.x0;
 end
 
@@ -13,7 +13,7 @@ for i=1:length(time_vector)-1
 end
 FigHandle=figure(1);
 set(FigHandle, 'Position', [100, 100, 1000, 400]);
-partition_viz_simple(T, env);
+partition_viz_simple({T}, {env},0, 'True Trajectories');
 hold on
 x=[x0(1)];y=[x0(2)];xl=x; yl=y; Time=[0];
 for path_length=1:length(time_vector2)

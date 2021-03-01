@@ -1,16 +1,24 @@
-function [ ] = partition_viz_simple( T, env,initial,agents, env2, T2 ,tit)
+function [ ] = partition_viz_simple( T, env,initial,tit)
 %Plots rectangles R (R is a multi-dimensional matrix R(:,:,j), where each j
 %represents a rectangle. Each rectangle is defined by the first and last
 %corner.
-if nargin == 3
-    agents=1; env2=env; T2=T;tit='Workspace';
-elseif nargin==6
+if nargin==2
+    tit='Workspace'; initial=0;
+elseif nargin == 3
     tit='Workspace';
 end
+
+%1 or 2 agents allowed
+if size(T,2)==2
+    T2=T{2}; env2=env{2}; T1=T{1}; env1=env{1}; agents=2;
+else
+    T1=T{1}; env1=env{1};T2=T{1}; env2=env{1}; agents=1;
+end
+
 R2=T2.R; FT2=env2.FT; Lap2=env2.Lap; AP_label2=env2.AP_label; init2=T2.current;
 colorL2=env2.color;
-R=T.R; FT=env.FT; Lap=env.Lap; AP_label=env.AP_label; init=T.current;
-colorL=env.color;
+R=T1.R; FT=env1.FT; Lap=env1.Lap; AP_label=env1.AP_label; init=T1.current;
+colorL=env1.color;
 %agent=subplot(a,b,c);
 title([tit]);
 hold on

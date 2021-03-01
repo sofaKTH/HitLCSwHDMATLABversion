@@ -7,7 +7,7 @@ function [  ] = plotPath2( X,Y,XL,YL,TIME,Tb,envb  )
 
 T=Tb{1}; T2=Tb{2}; env=envb{1}; envAut=envb{2};
 
-partition_viz_simple(T,env,0,2,envAut,T2,'Final trajectories');
+partition_viz_simple(Tb,envb,0,'Final trajectories');
 hold on;
 d=1;
 px=T.R(2,1,T.S(end))+0.1;
