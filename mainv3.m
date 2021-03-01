@@ -468,51 +468,51 @@ TIME={t1, t2}; Tb={T, T2}; envb={env2, envAut};
  [dd_realI, dc_realI, dh_realI, trans]=realDistances(X,Y,Tb,follow, allT,p,H);
 
 %% 
-x=env.x0; ds=0.1; eps=0.01;Tt=0;round=1;
-while i<length(pWTS{end})
-    choice=humaninputoptions(pWTS{end}, i, T,env); 
-    inputX=humanInput(choice);
-    if i<force
-        round=force;
-    else
-        round=i;
-    end
-    if strcmp(inputX,'follow') || strcmp(inputX, '1')
-        %drive on!
-        fprintf('\n Following the robots plan!\n');
-        [x, Tt]= onlineRun(env, GS{k}, T, pWTS{k}(i:i+1),i+1,x, zeros(1,6), round-1, Tt);
-        i=i+1;
-    else
-        Current=setUpCurr(P, inputX, i,env, GS,choice,k);
-        if timeMember(Current.firststate,QT, Current.time)
-            if Current.dir=='u'
-                dist=abs(x(2)-T.R(1,2,P.S(Current.firststate,2)));
-            elseif Current.dir=='d'
-                dist=abs(x(2)-T.R(2,2,P.S(Current.firststate,2)));
-            elseif Current.dir=='l'
-                dist=abs(x(1)-T.R(2,1,P.S(Current.firststate,2)));
-            else
-                dist=abs(x(1)-T.R(1,1,P.S(Current.firststate,2)));
-            end
-        else dist=Inf;
-        end
-        K=rhofunc(dist,ds,eps);
-        Uh=K*[choice.AH{Current.opt}(1,:) choice.AH{Current.opt}(2,:) choice.BH{Current.opt}'];
-        [x, Tt]=onlineRun(env, GS{k}, T, wtsProject([Current.laststate Current.firststate], P),i+1,x, Uh, round-1, Tt);
-        if containedIn(x,wtsProject(Current.firststate, P), T) %if we managed to reach the state the user intended
-            [ plan ] = learnh( Ps{end}, k, GS, Current );
-            k=k+1;
-            GS{k}=plan.gS;
-            Ps{k}=plan.P;
-            pWTS{k}=wtsProject(plan.gS.path, P);i=i+1; 
-        else
-            force=i+1;
-        end %otherwise it may be unsafe, we don't learn from this but continue and see what happens
-        
-        %end
-    end
-end
-fprintf('\n path ended! \n');
-%viz
-%truepath(env,GS{k}, T, pWTS{k});
+% x=env.x0; ds=0.1; eps=0.01;Tt=0;round=1;
+% while i<length(pWTS{end})
+%     choice=humaninputoptions(pWTS{end}, i, T,env); 
+%     inputX=humanInput(choice);
+%     if i<force
+%         round=force;
+%     else
+%         round=i;
+%     end
+%     if strcmp(inputX,'follow') || strcmp(inputX, '1')
+%         drive on!
+%         fprintf('\n Following the robots plan!\n');
+%         [x, Tt]= onlineRun(env, GS{k}, T, pWTS{k}(i:i+1),i+1,x, zeros(1,6), round-1, Tt);
+%         i=i+1;
+%     else
+%         Current=setUpCurr(P, inputX, i,env, GS,choice,k);
+%         if timeMember(Current.firststate,QT, Current.time)
+%             if Current.dir=='u'
+%                 dist=abs(x(2)-T.R(1,2,P.S(Current.firststate,2)));
+%             elseif Current.dir=='d'
+%                 dist=abs(x(2)-T.R(2,2,P.S(Current.firststate,2)));
+%             elseif Current.dir=='l'
+%                 dist=abs(x(1)-T.R(2,1,P.S(Current.firststate,2)));
+%             else
+%                 dist=abs(x(1)-T.R(1,1,P.S(Current.firststate,2)));
+%             end
+%         else dist=Inf;
+%         end
+%         K=rhofunc(dist,ds,eps);
+%         Uh=K*[choice.AH{Current.opt}(1,:) choice.AH{Current.opt}(2,:) choice.BH{Current.opt}'];
+%         [x, Tt]=onlineRun(env, GS{k}, T, wtsProject([Current.laststate Current.firststate], P),i+1,x, Uh, round-1, Tt);
+%         if containedIn(x,wtsProject(Current.firststate, P), T) %if we managed to reach the state the user intended
+%             [ plan ] = learnh( Ps{end}, k, GS, Current );
+%             k=k+1;
+%             GS{k}=plan.gS;
+%             Ps{k}=plan.P;
+%             pWTS{k}=wtsProject(plan.gS.path, P);i=i+1; 
+%         else
+%             force=i+1;
+%         end %otherwise it may be unsafe, we don't learn from this but continue and see what happens
+%         
+%         end
+%     end
+% end
+% fprintf('\n path ended! \n');
+% viz
+% truepath(env,GS{k}, T, pWTS{k});
 
