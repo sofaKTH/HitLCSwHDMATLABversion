@@ -18,10 +18,18 @@ classdef TestClass < matlab.unittest.TestCase
         function testCP(testCase)
             %testCP tests that cartesian_product in BWTS works as intended
             %i.e. that it returns the combination of all elements within 2
-            %arrays
+            %or more arrays
+            
+            %testing the result of a specific case
             actSolution=cartesian_product([1:5],[1:2]);
             expSolution=[1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2];
             testCase.verifyEqual(actSolution,expSolution);
+            
+            %testing the dimension
+            actDim=size(cartesian_product([1:5],[1:2],[1:3]));
+            expDim=[5*2*3, 3];
+            testCase.verifyEqual(actDim,expDim);
+            
         end
     end
 end
