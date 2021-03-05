@@ -12,6 +12,10 @@ classdef TestClass < matlab.unittest.TestCase
             testCase.OriginalPath=path;
             addpath(fullfile(pwd,'BWTS'));
         end
+        function addenvironmentToPath(testCase)
+            testCase.OriginalPath=path;
+            addpath(fullfile(pwd,'environment'));
+        end
     end
     
     methods (Test)
@@ -28,8 +32,24 @@ classdef TestClass < matlab.unittest.TestCase
             %testing the dimension
             actDim=size(cartesian_product([1:5],[1:2],[1:3]));
             expDim=[5*2*3, 3];
-            testCase.verifyEqual(actDim,expDim);
+            testCase.verifyEqual(actDim,expDim)
+        end
+        function testcontainedIn(testCase)
+            %testcontainedIn testz the function containedIn in enviornment
+            %which return 1 if the first input argument is a point
+            %withinthe rectangle defined by the points in T.R=[xmin, ymin;
+            %xmax, ymax] and 0 otherwise.
+            T.R=[0 0; 1 1];
             
+            %test return of 1
+            actSolution=containedIn([0.5, 0.5],1,T);
+            expSolution=1;
+            testCase.verifyEqual(actSolution, expSolution);
+            
+            %test return of 0
+            actSolution=containedIn([2.5, 0.5],1,T);
+            expSolution=0;
+            testCase.verifyEqual(actSolution, expSolution)
         end
     end
 end
