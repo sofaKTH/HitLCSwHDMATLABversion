@@ -22,7 +22,7 @@ R=[0 0; 0 0];
 x1=0; x2=0; N=1;
 for j=1:n
     R(:,:,j)=[x1 x2; x1+a x2+b];
-    if N==N1;
+    if N==N1
         x1=0;x2=x2+b;N=1;
     else
         x1=x1+a;N=N+1;
