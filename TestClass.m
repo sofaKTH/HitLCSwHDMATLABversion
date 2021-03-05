@@ -12,9 +12,13 @@ classdef TestClass < matlab.unittest.TestCase
             testCase.OriginalPath=path;
             addpath(fullfile(pwd,'BWTS'));
         end
-        function addenvironmentToPath(testCase)
+        function addEnvironmentToPath(testCase)
             testCase.OriginalPath=path;
             addpath(fullfile(pwd,'environment'));
+        end
+        function addTSToPath(testCase)
+            testCase.OriginalPath=path;
+            addpath(fullfile(pwd,'TS'));
         end
     end
     
@@ -50,6 +54,47 @@ classdef TestClass < matlab.unittest.TestCase
             actSolution=containedIn([2.5, 0.5],1,T);
             expSolution=0;
             testCase.verifyEqual(actSolution, expSolution)
+        end
+        function testWTSsimple(testCase)
+            %testWTSsimple tests the function WTS_simpleconstruction in TS
+            %which returns an object with 6 properties describing a WTS.
+            env=env1(); %some example settings
+            a=2; b=2;u=1; d=2; l=3; r=4;
+            
+            %test return of 1
+            T=WTS_simpleconstruction(env.n, a,b, env.Pi, env.Lap, u,d,l,r,env.init);
+            
+            %test cases for corners of states
+            actSolution=T.R(1,:,1);expSolution=[0,0];
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=T.R(2,:,1);expSolution=[a,b];
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=T.R(2,:,env.n);expSolution=[5*a,3*b];
+            testCase.verifyEqual(actSolution, expSolution);
+            
+            %test values that should be directly from input
+            actSolution=T.Pi;expSolution=env.Pi;
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=T.current;expSolution=env.init;
+            testCase.verifyEqual(actSolution, expSolution);
+            
+            %test some edges
+            actSolution=full(T.adj(2,1));expSolution=l;
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=full(T.adj(6,1));expSolution=d;
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=full(T.adj(14,15));expSolution=r;
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=full(T.adj(2,7));expSolution=u;
+            testCase.verifyEqual(actSolution, expSolution);
+             actSolution=full(T.adj(2,6));expSolution=0;
+             testCase.verifyEqual(actSolution, expSolution);
+            
+            % test limits
+            actSolution=T.FT{2};expSolution=[0, 0, 5*a; 3*b, 0, 5*a];
+            testCase.verifyEqual(actSolution, expSolution);
+            actSolution=T.FT{1};expSolution=[0, 0, 3*b; 5*a, 0, 3*b];
+            testCase.verifyEqual(actSolution, expSolution);
         end
     end
 end
