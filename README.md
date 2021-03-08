@@ -28,7 +28,8 @@ The work with this framework is ongoing. Current work is aimed at
 2) Refactoring the framework to achieve cleaner code
 3) Improving documentation
 
-#File Manifest (Updated last: 2021-03-08 at 10:59)
+#File Manifest (Updated last: 2021-03-08 at 11:07)
+<folder>		<file>
 BWTS 			cartesian_product.m
 BWTS			product.m
 BWTS			product2.m
