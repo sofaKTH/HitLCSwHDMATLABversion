@@ -172,8 +172,30 @@ classdef TestClass < matlab.unittest.TestCase
             end
             testCase.verifyClass(actSol, 'double');
         end
-        function testSome2(testCase)
-            actSol=0; expSol=0;
+        function testrho(testCase)
+            %tests rhofunc(dt,ds,eps) in MIC which should return the value
+            %of the function:
+            %k=rho(dt-ds)/(rho(dt-ds)+rho(eps+ds-dt))
+            %rho(s)=exp(-1/s) if s>0, 0 otherwise
+            %ds,dt,eps>0
+            
+            %test case when dt>ds+eps, expect k=1
+            dt=5; ds=2; eps=1;
+            actSol=rhofunc(dt,ds,eps); expSol=1;
+            testCase.verifyEqual(actSol, expSol);
+            
+            %test case when ds<dt<ds+eps, expect k in (0,1)
+            %more specifically k=exp(1/(ds-dt))/(exp(1/(ds-dt))+exp(1/(dt-ds-eps)))
+            dt=3; ds=2; eps=2;
+            actSol=rhofunc(dt,ds,eps); 
+            expSol=exp(1/(ds-dt))/(exp(1/(ds-dt))+exp(1/(dt-ds-eps)));
+            testCase.verifyEqual(actSol, expSol);
+            testCase.verifyLessThan(actSol, 1);
+            testCase.verifyGreaterThan(actSol,0);
+            
+            %test case when dt<ds, expect k=0
+            dt=1; ds=2; eps=1;
+            actSol=rhofunc(dt,ds,eps); expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
         function testSome3(testCase)
