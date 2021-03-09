@@ -118,31 +118,77 @@ classdef TestClass < matlab.unittest.TestCase
             actSolution=T.FT{1};expSolution=[0, 0, 3*b; 5*a, 0, 3*b];
             testCase.verifyEqual(actSolution, expSolution);
         end
-        function testSome(testCase)
+        function testenv1(testCase)
+            %tests the functions env1 which should return an object with 12
+            %properties describing an environment. The tests focus on the
+            %units and structure of the properties.
+            env=env1();
+            
+            %n should be an integer valued double (number of regions)
+            %test class=double
+            actSol=env.n; expSol='double';
+            testCase.verifyClass(actSol, expSol);
+            %test value of integer
+            actMod1=mod(env.n,1); expMod1=0;
+            testCase.verifyEqual(actMod1,expMod1);
+            
+            %Pi should be a row-array of doubles with min 2 values
+            %test class of elements
+            actSol=env.Pi; expSol='double';
+            testCase.verifyClass(actSol, expSol);
+            %test number of rows
+            actRows=size(actSol,1); expRows=1;
+            testCase.verifyEqual(actRows, expRows);
+            %test number of columns
+            actCol=size(actSol,2); expminCol=2;
+            testCase.verifyGreaterThanOrEqual(actCol, expminCol);
+            
+            %Lap should be a cell of size 1xactCol(from Pi-test)
+            actSol=env.Lap; expSol='cell';
+            testCase.verifyClass(actSol, expSol);
+            actSize=size(actSol);expSize=[1, actCol];
+            testCase.verifyEqual(actSize,expSize);
+            
+            %init should be a double less o equal to n
+            actSol=env.init; expSol='double';
+            testCase.verifyClass(actSol, expSol);
+            expMax=env.n;
+            testCase.verifyLessThanOrEqual(actSol, expMax);
+        end
+        function testNB(testCase)
+            %test neighboors.m in MIC which should return a row-array of
+            %doubles of size 2,3 or 4
+            inp.N=30; inp.N1=6; %number of regions and regions/row
+            for x=[1,18,15]
+                actSol=neighboors(inp,inp,x);
+                if x==1
+                    expSol=[x+1, x+inp.N/inp.N1];
+                elseif x==18
+                    expSol=[x-1, x+inp.N/inp.N1, x-inp.N/inp.N1];
+                else
+                    expSol=[x+1, x-1, x+inp.N/inp.N1, x-inp.N/inp.N1];
+                end
+                testCase.verifyEqual(actSol, expSol);
+            end
+            testCase.verifyClass(actSol, 'double');
+        end
+        function testSome2(testCase)
             actSol=0; expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
-        function testSome(testCase)
+        function testSome3(testCase)
             actSol=0; expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
-        function testSome(testCase)
+        function testSome4(testCase)
             actSol=0; expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
-        function testSome(testCase)
+        function testSome5(testCase)
             actSol=0; expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
-        function testSome(testCase)
-            actSol=0; expSol=0;
-            testCase.verifyEqual(actSol, expSol);
-        end
-        function testSome(testCase)
-            actSol=0; expSol=0;
-            testCase.verifyEqual(actSol, expSol);
-        end
-        function testSome(testCase)
+        function testSome6(testCase)
             actSol=0; expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
