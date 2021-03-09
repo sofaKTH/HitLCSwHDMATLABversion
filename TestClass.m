@@ -118,6 +118,34 @@ classdef TestClass < matlab.unittest.TestCase
             actSolution=T.FT{1};expSolution=[0, 0, 3*b; 5*a, 0, 3*b];
             testCase.verifyEqual(actSolution, expSolution);
         end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
+        function testSome(testCase)
+            actSol=0; expSol=0;
+            testCase.verifyEqual(actSol, expSol);
+        end
     end
 end
 
