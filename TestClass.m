@@ -1,6 +1,7 @@
 classdef TestClass < matlab.unittest.TestCase
-    %TESTCLASS Contains my test-functions which ensures that the functions
-    %works as intended.
+    %TESTCLASS Contains my test-functions which ensures that some testable 
+    %functions work as intended. All folders are added to the path and then
+    %a variety of testcases are performed.
     
     properties
         OriginalPath
@@ -8,17 +9,22 @@ classdef TestClass < matlab.unittest.TestCase
     
     methods(TestMethodSetup)
         %add folders to path
-        function addBWTSToPath(testCase)
+        function addFOLDERSToPath(testCase)
             testCase.OriginalPath=path;
             addpath(fullfile(pwd,'BWTS'));
-        end
-        function addEnvironmentToPath(testCase)
-            testCase.OriginalPath=path;
             addpath(fullfile(pwd,'environment'));
-        end
-        function addTSToPath(testCase)
-            testCase.OriginalPath=path;
             addpath(fullfile(pwd,'TS'));
+            addpath(fullfile(pwd,'hardsoftupd'));
+            addpath(fullfile(pwd,'HRI and learning'));
+            addpath(fullfile(pwd,'path'));
+            addpath(fullfile(pwd,'MIC'));
+            addpath(fullfile(pwd,'softonly'));
+            addpath(fullfile(pwd,'TAhd'));
+            addpath(fullfile(pwd,'visualization'));
+            %used only for documentation of figures/data, probably not
+            %needed by the test functions, added to avoid confusion.
+            addpath(fullfile(pwd,'figures'));
+            addpath(fullfile(pwd,'logs'));
         end
     end
     
