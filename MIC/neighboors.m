@@ -2,10 +2,10 @@ function [ nb] = neighboors( envAut,T2,pi )
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 nb=[];
-if pi+1<=envAut.N
+if pi+1<=envAut.N && mod(pi,T2.N1)~=0
     nb=[nb pi+1];
 end
-if pi-1>=1 
+if pi-1>=1 && mod(pi, T2.N1)~=1
     nb=[nb pi-1];
 end
 if  pi+envAut.N/T2.N1<=envAut.N 
