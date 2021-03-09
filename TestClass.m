@@ -198,9 +198,80 @@ classdef TestClass < matlab.unittest.TestCase
             actSol=rhofunc(dt,ds,eps); expSol=0;
             testCase.verifyEqual(actSol, expSol);
         end
-        function testSome3(testCase)
-            actSol=0; expSol=0;
+        function testhTAsah(testCase)
+            %tests hybridTAsoftandhard(dead) in TAhd which should return an
+            %object with 11 properties. Here we focus on testing units and
+            %size
+            A=hybridTAsoftandhard([1 2]);
+            
+            %S should be an array of doubles, length is hard-coded to 17
+            % for more gerenarl use we will allow any array of doubles
+            % counting from 1 upwards
+            actSol=A.S; sizeSol=size(actSol,2); expSol=1:sizeSol;
             testCase.verifyEqual(actSol, expSol);
+            testCase.verifyClass(actSol, 'double');
+            
+            %init should be a double with an integer value in the set
+            %(1,max(A.S)
+            actSol=A.init; expMax=max(A.S);
+            %double class
+            testCase.verifyClass(actSol, 'double');
+            %in expected set
+            testCase.verifyGreaterThanOrEqual(actSol,1);
+            testCase.verifyLessThanOrEqual(actSol, expMax);
+            %integer-value
+            testCase.verifyEqual(mod(actSol,1),0);
+            
+            % final is an array of doubles (possibly with 1 element) each
+            % element must satisfy the same properties as init.
+            actSol=A.final; 
+            %double class
+            testCase.verifyClass(actSol, 'double');
+            %properties of elements
+            for i=actSol
+                %in expected set
+                testCase.verifyGreaterThanOrEqual(i,1);
+                testCase.verifyLessThanOrEqual(i, expMax);
+                %integer-value
+                testCase.verifyEqual(mod(i,1),0);
+            end
+            % AP is an array of doubles with hard-coded data 1:4
+            % for more gerenarl use we will allow any array of doubles
+            % counting from 1 upwards
+            actSol=A.AP; sizeSol=size(actSol,2); expSol=1:sizeSol;
+            testCase.verifyEqual(actSol, expSol);
+            %X has the same constraints as AP
+            actSol=A.X; sizeSol=size(actSol,2); expSol=1:sizeSol;
+            testCase.verifyEqual(actSol, expSol);
+            %Xv should be the input value
+            actSol=A.Xv; expSol=[1 2];
+            testCase.verifyEqual(actSol, expSol);
+            %Ix and Ixup should be a matrices of size |S|x|S| with values 0
+            %or x in X
+            actSol=A.Ix;  actSol2=A.Ixup;
+            testCase.verifySize(actSol, [length(A.S), length(A.S)]);
+            testCase.verifySize(actSol2, [length(A.S), length(A.S)]);
+            %check values
+            actValuation=double(ismember(actSol,[0, 1:length(A.X)]));
+            actValuation2=double(ismember(actSol2,[0, 1:length(A.X)]));
+            expValuation=ones(size(actSol));
+            testCase.verifyEqual(actValuation, expValuation);
+            testCase.verifyEqual(actValuation2, expValuation);
+            %Ih should be a 3x|S| matrix with same values allowed as Ix and Ixup
+            actSol=A.Ih; 
+            testCase.verifySize(actSol, [3, length(A.S)]);
+            actValuation=double(ismember(actSol, [0, 1:length(A.X)]));
+            testCase.verifyEqual(actValuation, ones(size(actSol)));
+            %act should be an array of doubles 
+            actSol=A.act; 
+            testCase.verifyClass(actSol, 'double');
+            %trans should be a matrix of size |S|x|act|x|X| with doubles
+            %taking on values in (1, |S|)
+            actSol=A.trans; 
+            testCase.verifyClass(actSol, 'double');
+            testCase.verifySize(actSol, [length(A.S), max(A.act), length(A.X)]);
+            actValuation=double(ismember(actSol, 0:length(A.S)));
+            testCase.verifyEqual(actValuation, ones(size(actSol)));
         end
         function testSome4(testCase)
             actSol=0; expSol=0;
