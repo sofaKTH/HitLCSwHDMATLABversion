@@ -70,7 +70,7 @@ while pathFound==false && ~isempty(Spool)
                     parent(q2)=q1; time(q2)=time(q1)+trans(q1,q2);
                     Spool=[Spool q2]; trans(q1,q2)=temptrans;
                 end
-                fprintf('parent to %d is %d\n',q2,parent(q2));
+                %fprintf('parent to %d is %d\n',q2,parent(q2));
             end
         end
         Spool=Spool(Spool~=q1);
