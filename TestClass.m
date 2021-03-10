@@ -18,7 +18,6 @@ classdef TestClass < matlab.unittest.TestCase
             addpath(fullfile(pwd,'HRI and learning'));
             addpath(fullfile(pwd,'path'));
             addpath(fullfile(pwd,'MIC'));
-            addpath(fullfile(pwd,'softonly'));
             addpath(fullfile(pwd,'TAhd'));
             addpath(fullfile(pwd,'visualization'));
             %used only for documentation of figures/data, probably not
@@ -273,9 +272,65 @@ classdef TestClass < matlab.unittest.TestCase
             actValuation=double(ismember(actSol, 0:length(A.S)));
             testCase.verifyEqual(actValuation, ones(size(actSol)));
         end
-        function testSome4(testCase)
-            actSol=0; expSol=0;
-            testCase.verifyEqual(actSol, expSol);
+        function testP2(testCase)
+            %Tests product2(T,A,set) in BWTS which should return an object
+            %with 9 properties
+            %some setting needed to create T and A (no impact on P)
+            sett.opt_c=33; sett.eps=0.1; sett.u_joint=0; sett.lin_ass=0; 
+            sett.rest=0.01;dead=[1 3];
+            %construct P
+            T=TS_construction(env1(),sett);A=hybridTAsoftandhard(dead);
+            if size(A.Ix,1)==1
+                set=1;
+            else
+                set=2;
+            end
+            P=product2(T,A,set);
+            
+            % S should contain the combos of all states in A and T
+            actSol=P.S; N=size(actSol, 1);
+            testCase.verifySize(actSol, [length(T.S)*length(A.S), 2]);
+            testCase.verifyClass(actSol, 'double');
+            testCase.verifyEqual(double(ismember(actSol(:,1),T.S)), ones(N,1));
+            testCase.verifyEqual(double(ismember(actSol(:,2),A.S)), ones(N,1));
+            
+            % Q shoule be an array 1:N where N is the number of rows in S
+            actSol=P.Q;
+            testCase.verifyEqual(actSol, 1:N);
+            
+            %trans  should be a NxN matrix with positive definite values
+            %they are not restricted to integers and may alos be inf. If
+            %the value is not inf it must be projected from T.adj
+            actSol=P.trans;
+            testCase.verifySize(actSol, [N, N]);
+            for elem=find(~isinf(actSol))'
+                col=ceil(elem/N); row=elem+(1-col)*N;
+                pi=P.S(row,1); pi2=P.S(col,1);
+                testCase.verifyEqual(actSol(elem), full(T.adj(pi, pi2)));
+            end
+            
+            %final should be an array of projected states from A
+            actSol=P.final; actVal=double(ismember(P.S(actSol,2),A.final)); 
+            expVal=ones(size(actVal));
+            testCase.verifyEqual(actVal, expVal);
+            
+            % Ix and Ih should be projected from A (Ih transposed)
+            actSol1=P.Ix; actSol2=P.Ih;
+            for q=1:N
+                for q2=1:N
+                    testCase.verifyEqual(actSol1(q,q2),A.Ix(P.S(q,2),P.S(q2,2)));
+                end
+                for h=1:2
+                    testCase.verifyEqual(actSol2(q,h),A.Ih(h, P.S(q,2)));
+                end
+            end
+            %init should be projecyed from A and T
+            actSol=P.init; expSol=[T.current, A.init];
+            testCase.verifyEqual(P.S(actSol,:),expSol);
+            %X and Xv should be copies from A
+            testCase.verifyEqual(P.X, A.X); 
+            testCase.verifyEqual(P.Xv, A.Xv); 
+            
         end
         function testSome5(testCase)
             actSol=0; expSol=0;
