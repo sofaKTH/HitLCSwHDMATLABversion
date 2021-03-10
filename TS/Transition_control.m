@@ -5,6 +5,7 @@ function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,
 %(1, -1, -2 or 2).
 %Returns the optimal control input which yields the transition.
 %options = optimoptions('fmincon','TolX',1e-10);
+options=optimoptions('fmincon','display','none');
 y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
 if u_joint==0 %if umin<=ui<=umax for i=1,2 is used
     [con2, b2]=constraints_general(B,R,U);
@@ -45,13 +46,13 @@ if d==1
         k=[0 0];
     end
     con_tot=[con2;con];b_tot=[b2';b'];%build together linear constraints
-    gs=GlobalSearch;
+    gs=GlobalSearch;gs.Display='off';
     if u_joint==1 %if unlinear constr are used
         %[y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k));
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
         [y,fmin,flag,outpt,allmins]=run(gs,problem);
     else %if all constr are linear
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot);
+        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 elseif  d==-1
     if opt_c==0
@@ -75,13 +76,13 @@ elseif  d==-1
         k=[0 0];
     end
     con_tot=[con2;con];b_tot=[b2';b'];
-    gs=GlobalSearch;
+    gs=GlobalSearch;gs.Display='off';
     if u_joint==1
         %[y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k));
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
         [y,fmin,flag,outpt,allmins]=run(gs,problem);
     else
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot);
+        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 elseif d==2
     if opt_c==0
@@ -106,9 +107,9 @@ elseif d==2
     end
     con_tot=[con2;con];b_tot=[b2';b'];
     if u_joint==1
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k));
+        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
     else
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot);
+        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 else % d=-2
     if opt_c==0
@@ -133,9 +134,9 @@ else % d=-2
     end
     con_tot=[con2;con];b_tot=[b2';b'];
     if u_joint==1
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k));
+        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
     else
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot);
+        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 end
 %build matrices
