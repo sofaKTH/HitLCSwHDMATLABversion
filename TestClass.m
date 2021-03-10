@@ -393,8 +393,29 @@ classdef TestClass < matlab.unittest.TestCase
             actSol=gS.trans; expSol=P.trans;
             testCase.verifyEqual(actSol, expSol);
         end
-        function testSome6(testCase)
-            actSol=0; expSol=0;
+        function testTAPr(testCase)
+            %test taProject(path,P) which should return an array x of doubles
+            %included in A.S such that P.S(path(i),2)=x(i)
+            
+            %construct an example of a P and some paths
+            sett.opt_c=33; sett.eps=0.1; sett.u_joint=0; sett.lin_ass=0; 
+            sett.rest=0.001;dead=[0.1 0.2];
+            %construct P
+            T=TS_construction(env2(),sett);A=hybridTAsoftandhard(dead);
+            if size(A.Ix,1)==1
+                set=1;
+            else
+                set=2;
+            end
+            P=product2(T,A,set);
+            gS=graphSearch(P,0.5); gS2=graphSearch(P,1); gS3=graphSearch(P,0);
+            path1=gS.path; path2=gS2.path; path3=gS3.path;
+            %test the different cases
+            actSol=taProject(path1,P); expSol=P.S(path1,2);
+            testCase.verifyEqual(actSol, expSol);
+            actSol=taProject(path2,P); expSol=P.S(path2,2);
+            testCase.verifyEqual(actSol, expSol);
+            actSol=taProject(path3,P); expSol=P.S(path3,2);
             testCase.verifyEqual(actSol, expSol);
         end
     end
