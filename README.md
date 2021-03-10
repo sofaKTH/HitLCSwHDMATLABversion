@@ -28,7 +28,7 @@ The work with this framework is ongoing. Current work is aimed at
 2) Refactoring the framework to achieve cleaner code
 3) Improving documentation
 
-## File Manifest (Updated last: 2021-03-08 at 11:32):
+## File Manifest (Updated last: 2021-03-10 at 11:53):
 - BWTS
 	- cartesian_product.m
 	- product.m
@@ -67,9 +67,6 @@ The work with this framework is ongoing. Current work is aimed at
 	- plotPath2.m
 	- taProject.m
 	- wtsProject.m
-- softonly
- 	- main.m
-	- TS_construction
 - TAhd
 	- hybridTA.m
 	- hybridTAsoftandhard.m
