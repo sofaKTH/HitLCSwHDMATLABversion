@@ -332,8 +332,65 @@ classdef TestClass < matlab.unittest.TestCase
             testCase.verifyEqual(P.Xv, A.Xv); 
             
         end
-        function testSome5(testCase)
-            actSol=0; expSol=0;
+        function testGS(testCase)
+            %tests graphSearch(P,c,init_set) which should return an object with
+            %9 properties. c must be in [0,1] and init_set is optional
+            
+            %Create an example P
+            sett.opt_c=33; sett.eps=0.1; sett.u_joint=0; sett.lin_ass=0; 
+            sett.rest=0.001;dead=[0.1 0.2];
+            %construct P
+            T=TS_construction(env2(),sett);A=hybridTAsoftandhard(dead);
+            if size(A.Ix,1)==1
+                set=1;
+            else
+                set=2;
+            end
+            P=product2(T,A,set);
+            %construct an example gS
+            gS=graphSearch(P,0.1);
+            
+            %path should be an array of values from P.Q
+            actSol=gS.path; N=length(actSol);
+            %check that it is an array
+            testCase.verifySize(actSol, [1, N]);
+            %check that values are allowed
+            actVal=double(ismember(actSol,P.Q));
+            testCase.verifyEqual(actVal, ones(1,N));
+            
+            %Fdh, Fdc, Fdd and Ftime should all be scalars >=0
+            actSol1=gS.Fdh; actSol2=gS.Fdc; actSol3=gS.Fdd; actSol4=gS.Ftime;
+            for elem=[actSol1, actSol2, actSol3, actSol4]
+                testCase.verifySize(elem,[1 1]);
+                testCase.verifyGreaterThanOrEqual(elem,0);
+            end
+            
+            %time_vector, DD and DC should all be arrays of values >=0
+            %which increases or stay the same, i.e. x(k+1)>=x(k), x(1)>=0,
+            %the length of the arrays should be same as for path, i.e. N
+            actSol=gS.time_vector;
+            testCase.verifySize(actSol, [1,N]);
+            last=0;
+            for elem=actSol
+                testCase.verifyGreaterThanOrEqual(elem,last);
+                last=elem;
+            end
+            actSol=gS.DC;
+            testCase.verifySize(actSol, [1,N]);
+            last=0;
+            for elem=actSol
+                testCase.verifyGreaterThanOrEqual(elem,last);
+                last=elem;
+            end
+            actSol=gS.DD;
+            testCase.verifySize(actSol, [1,N]);
+            last=0;
+            for elem=actSol
+                testCase.verifyGreaterThanOrEqual(elem,last);
+                last=elem;
+            end
+            %trans should be a direct copy of P.trans
+            actSol=gS.trans; expSol=P.trans;
             testCase.verifyEqual(actSol, expSol);
         end
         function testSome6(testCase)
