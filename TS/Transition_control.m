@@ -28,11 +28,9 @@ if d==1
     if opt_c==0 %update postion depending on direction, min,min
         x1=R(1,1);x2=R(1,2);
     end
-%     x1=[R(1,1) R(2,1) R(1,1) R(2,1)];
-%     x2=[R(1,2) R(2,2) R(2,2) R(1,2)];
     f=@(y) max(-[A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])-y(3); %function to minimize
     [con, b]=constraints_specific(R,d,A,eps); %constraints depending on direction
-    if lin_ass==1 %if assumption: k12=0, k21=A(2,1)
+    if lin_ass==1 %if assumption: k12=-A(1,2), k21=-A(2,1)
        f=@(y) max(-(A(1,1)+y(1))*x1)-y(2);
        [con, b]=constraints_specific_lin(R,d,A,eps); %update constraints
        k=[-A(1,2) -A(2,1)];
@@ -48,7 +46,6 @@ if d==1
     con_tot=[con2;con];b_tot=[b2';b'];%build together linear constraints
     gs=GlobalSearch;gs.Display='off';
     if u_joint==1 %if unlinear constr are used
-        %[y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k));
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
         [y,fmin,flag,outpt,allmins]=run(gs,problem);
     else %if all constr are linear
@@ -58,8 +55,6 @@ elseif  d==-1
     if opt_c==0
         x1=R(2,1);x2=R(2,2);
     end
-%     x1=[R(1,1) R(2,1) R(1,1) R(2,1)];
-%     x2=[R(1,2) R(2,2) R(2,2) R(1,2)];
     f=@(y) max([A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])+y(3);
     [con,b]=constraints_specific(R,d,A,eps);
     if lin_ass==1 %k12=0, k21=A(2,1)
@@ -78,7 +73,6 @@ elseif  d==-1
     con_tot=[con2;con];b_tot=[b2';b'];
     gs=GlobalSearch;gs.Display='off';
     if u_joint==1
-        %[y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k));
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
         [y,fmin,flag,outpt,allmins]=run(gs,problem);
     else
@@ -88,8 +82,6 @@ elseif d==2
     if opt_c==0
         x1=R(1,1);x2=R(1,2);
     end
-%     x1=[R(1,1) R(2,1) R(1,1) R(2,1)];
-%     x2=[R(1,2) R(2,2) R(2,2) R(1,2)];
     f=@(y) -(min([A(2,1)+y(4) A(2,2)+y(5)]*[x1;x2])+y(6));
     [con,b]=constraints_specific(R,d,A,eps);
     if lin_ass==1 %k12=-A(1,2), k21=0
