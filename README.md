@@ -39,7 +39,6 @@ The work with this framework is ongoing. Current work is aimed at
 	- env2.m
 	- env3.m
 - hardsoftupd
-	- TS_construction.m
 	- hardConVio.m
 	- humanInput.m
 	- humanInput2.m
@@ -80,6 +79,7 @@ The work with this framework is ongoing. Current work is aimed at
 	- constraints_specific_lin.m
 	- Time_demand.m
 	- Transition_control.m
+	- TS_construction.m
 	- WTS_simpleconstruction.m
 - visualization
 	- arrow.m
