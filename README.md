@@ -38,7 +38,7 @@ The work with this framework is ongoing. Current work is aimed at
 	- env1.m
 	- env2.m
 	- env3.m
-- hardsoftupd
+- HRI and learning
 	- hardConVio.m
 	- humanInput.m
 	- humanInput2.m
