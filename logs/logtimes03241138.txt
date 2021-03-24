@@ -1,0 +1,7 @@
+Logfile logs/logtimes03241138.txt 
+ ------------------------- 
+ Initial time= 147.843750
+ Process 	 Computation Time
+ Environment setting 	 0.125000
+ Abstraction 	 5.656250	 154.250000
+ Visualization of Workspace 	 2.203125
