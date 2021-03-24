@@ -6,7 +6,6 @@ function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,
 %Returns the optimal control input which yields the transition.
 %options = optimoptions('fmincon','TolX',1e-10);
 options=optimoptions('fmincon','display','none');
-y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
 
     function [c,b]=controlLimits()
         type=u_joint;
@@ -41,19 +40,26 @@ y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
             x1=(R(2,1)+R(1,1))/2;x2=(R(2,2)+R(1,2))/2;
         end 
     end
+    function y0=setInitialGuess()
+        if lin_ass==1
+            y0=ones(1,4);
+        else
+            y0=[1 1 -A(1,2) -A(2,1) 1 1];
+        end
+    end
 
 %set constraints
 [con,b]=velocityLimits();
 [con2,b2]=controlLimits();
 con_tot=[con2;con]; b_tot=[b2';b'];
 [x1,x2]=setOptimizationCorner();
+y0=setInitialGuess();
 
 if d==1
     f=@(y) max(-[A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])-y(3); %function to minimize
     if lin_ass==1 %if assumption: k12=-A(1,2), k21=-A(2,1)
        f=@(y) max(-(A(1,1)+y(1))*x1)-y(2);
        k=[-A(1,2) -A(2,1)];
-       y0=[1 1 1 1]; %decrease number of unknown
     else
         k=[0 0];
     end
@@ -70,7 +76,6 @@ elseif  d==-1
     if lin_ass==1 %k12=0, k21=A(2,1)
        f=@(y) max((A(1,1)+y(1))*x1)+y(2);
        k=[-A(1,2) -A(2,1)];
-       y0=[1 1 1 1];
     else
         k=[0 0];
     end
@@ -86,7 +91,6 @@ elseif d==2
     if lin_ass==1 %k12=-A(1,2), k21=0
        f=@(y) -min((A(2,2)+y(3))*x2)-y(4);
        k=[-A(1,2) -A(2,1)];
-       y0=[1 1 1 1];
     else
        k=[0 0];
     end
@@ -100,7 +104,6 @@ else % d=-2
     if lin_ass==1 %k12=-A(1,2), k21=0
        f=@(y) max((A(2,2)+y(3))*x2)+y(4);
        k=[-A(1,2) -A(2,1)];
-       y0=[1 1 1 1];
     else
         k=[0 0];
     end
