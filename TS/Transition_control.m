@@ -2,11 +2,18 @@
 function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,u_joint)
 %Takes A,B which describes the system, U which is the limit of control, R
 %which is the rectangle and d which indicates the direction of the facet 
-%(1, -1, -2 or 2).
+%(1(x), -1(-x), -2(-y) or 2(y)).
 %Returns the optimal control input which yields the transition.
-%options = optimoptions('fmincon','TolX',1e-10);
-options=optimoptions('fmincon','display','none');
 
+%set options to remove print outs
+options=optimoptions('fmincon','display','none');
+    function k=setConstants()
+        if lin_ass==1
+            k=[-A(1,2) -A(2,1)];
+        else
+            k=[0 0];
+        end
+    end
     function [c,b]=controlLimits()
         type=u_joint;
         if type==0
@@ -69,6 +76,7 @@ options=optimoptions('fmincon','display','none');
     end
 
 %set properties
+k=setConstants(); %assumed values on diagonal of K1
 [con,b]=velocityLimits(); %constraints on velocity
 [con2,b2]=controlLimits(); %constraints on control
 con_tot=[con2;con]; b_tot=[b2';b']; %merge constraints
@@ -78,12 +86,6 @@ xdot=setSystemFunction(); %system dynamics
 f=setOptimizationFunction(); %function to minimize
 
 if d==1
-    if lin_ass==1 %if assumption: k12=-A(1,2), k21=-A(2,1)
-       k=[-A(1,2) -A(2,1)];
-    else
-        k=[0 0];
-    end
-    %con_tot=[con2;con];b_tot=[b2';b'];%build together linear constraints
     gs=GlobalSearch;gs.Display='off';
     if u_joint==1 %if unlinear constr are used
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
@@ -92,11 +94,6 @@ if d==1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 elseif  d==-1
-    if lin_ass==1 %k12=0, k21=A(2,1)
-       k=[-A(1,2) -A(2,1)];
-    else
-        k=[0 0];
-    end
     gs=GlobalSearch;gs.Display='off';
     if u_joint==1
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
@@ -105,22 +102,12 @@ elseif  d==-1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 elseif d==2
-    if lin_ass==1 %k12=-A(1,2), k21=0
-       k=[-A(1,2) -A(2,1)];
-    else
-       k=[0 0];
-    end
     if u_joint==1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
     else
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 else % d=-2
-    if lin_ass==1 %k12=-A(1,2), k21=0
-       k=[-A(1,2) -A(2,1)];
-    else
-        k=[0 0];
-    end
     if u_joint==1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
     else
