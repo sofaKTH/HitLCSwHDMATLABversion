@@ -4,6 +4,11 @@ function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,
 %which is the rectangle and d which indicates the direction of the facet 
 %(1(x), -1(-x), -2(-y) or 2(y)).
 %Returns the optimal control input which yields the transition.
+%The system dynamics are: xdot=Ax+Bu, u=K1x+K2-> xdot=(A+BK1)x+BK2
+%This code returns the optimal values on K1 and K2 such that the velocity
+%inthe transition direction is maximized, while constraints are put on the
+%edges of the current region s.t. the velocity is negative in the directio
+%towards other edges on said edge. 
 
 %set options to remove print outs
 options=optimoptions('fmincon','display','none');
