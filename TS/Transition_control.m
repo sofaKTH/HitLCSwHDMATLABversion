@@ -47,18 +47,38 @@ options=optimoptions('fmincon','display','none');
             y0=[1 1 -A(1,2) -A(2,1) 1 1];
         end
     end
+    function xdot=setSystemFunction()
+        if lin_ass==0
+            xdot=@(y) [A(1,1)+y(1), A(1,2)+y(2);A(2,1)+y(4), A(2,2)+y(5)]...
+                *[x1; x2]+[y(3); y(6)];
+        else
+            xdot=@(y) [A(1,1)+y(1), 0;0, A(2,2)+y(3)]...
+                *[x1; x2]+[y(2); y(4)];
+        end
+    end
+    function f=setOptimizationFunction()
+        if d==1
+            f=@(y) max([1 0]*xdot(y));
+        elseif d==-1
+            f=@(y) max([-1 0]*xdot(y));
+        elseif d==2
+            f=@(y) max([0 1]*xdot(y));
+        else %d==-2
+            f=@(y) max([0 -1]*xdot(y));
+        end
+    end
 
-%set constraints
-[con,b]=velocityLimits();
-[con2,b2]=controlLimits();
-con_tot=[con2;con]; b_tot=[b2';b'];
-[x1,x2]=setOptimizationCorner();
-y0=setInitialGuess();
+%set properties
+[con,b]=velocityLimits(); %constraints on velocity
+[con2,b2]=controlLimits(); %constraints on control
+con_tot=[con2;con]; b_tot=[b2';b']; %merge constraints
+[x1,x2]=setOptimizationCorner(); %corner to optimize for
+y0=setInitialGuess(); %initial optimization guess
+xdot=setSystemFunction(); %system dynamics
+f=setOptimizationFunction(); %function to minimize
 
 if d==1
-    f=@(y) max(-[A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])-y(3); %function to minimize
     if lin_ass==1 %if assumption: k12=-A(1,2), k21=-A(2,1)
-       f=@(y) max(-(A(1,1)+y(1))*x1)-y(2);
        k=[-A(1,2) -A(2,1)];
     else
         k=[0 0];
@@ -72,9 +92,7 @@ if d==1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 elseif  d==-1
-    f=@(y) max([A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])+y(3);
     if lin_ass==1 %k12=0, k21=A(2,1)
-       f=@(y) max((A(1,1)+y(1))*x1)+y(2);
        k=[-A(1,2) -A(2,1)];
     else
         k=[0 0];
@@ -87,9 +105,7 @@ elseif  d==-1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 elseif d==2
-    f=@(y) -(min([A(2,1)+y(4) A(2,2)+y(5)]*[x1;x2])+y(6));
     if lin_ass==1 %k12=-A(1,2), k21=0
-       f=@(y) -min((A(2,2)+y(3))*x2)-y(4);
        k=[-A(1,2) -A(2,1)];
     else
        k=[0 0];
@@ -100,9 +116,7 @@ elseif d==2
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
     end
 else % d=-2
-    f=@(y) max([A(2,1)+y(4) A(2,2)+y(5)]*[x1;x2])+y(6);
     if lin_ass==1 %k12=-A(1,2), k21=0
-       f=@(y) max((A(2,2)+y(3))*x2)+y(4);
        k=[-A(1,2) -A(2,1)];
     else
         k=[0 0];
