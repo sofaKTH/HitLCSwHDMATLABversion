@@ -11,7 +11,11 @@ y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
     function [c,b]=controlLimits()
         type=u_joint;
         if type==0
-            [c,b]=constraints_general_lin(B,R,U,k);
+            if lin_ass==1
+                [c,b]=constraints_general_lin(B,R,U,k);
+            else
+                [c,b]=constraints_general(B,R,U);
+            end
         else
             c=[];b=[];
         end
@@ -25,11 +29,11 @@ y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
         end
     end
 
-if u_joint==0 %if umin<=ui<=umax for i=1,2 is used
-    [con2, b2]=constraints_general(B,R,U);
-else %if (u1^2+u2^2)^(1/2)<=umax is used
-    con2=[];b2=[];
-end
+% if u_joint==0 %if umin<=ui<=umax for i=1,2 is used
+%     [con2, b2]=constraints_general(B,R,U);
+% else %if (u1^2+u2^2)^(1/2)<=umax is used
+%     con2=[];b2=[];
+% end
 %set which position in the rectangle to optimize for
 if opt_c==11 %min,min
     x1=R(1,1);x2=R(1,2);
@@ -43,7 +47,11 @@ else  %middle
     x1=(R(2,1)+R(1,1))/2;x2=(R(2,2)+R(1,2))/2;
 end
 
+%set constraints
 [con,b]=velocityLimits();
+[con2,b2]=controlLimits();
+con_tot=[con2;con]; b_tot=[b2';b'];
+
 if d==1
     if opt_c==0 %update postion depending on direction, min,min
         x1=R(1,1);x2=R(1,2);
@@ -52,12 +60,11 @@ if d==1
     if lin_ass==1 %if assumption: k12=-A(1,2), k21=-A(2,1)
        f=@(y) max(-(A(1,1)+y(1))*x1)-y(2);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit();
        y0=[1 1 1 1]; %decrease number of unknown
     else
         k=[0 0];
     end
-    con_tot=[con2;con];b_tot=[b2';b'];%build together linear constraints
+    %con_tot=[con2;con];b_tot=[b2';b'];%build together linear constraints
     gs=GlobalSearch;gs.Display='off';
     if u_joint==1 %if unlinear constr are used
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
@@ -73,12 +80,10 @@ elseif  d==-1
     if lin_ass==1 %k12=0, k21=A(2,1)
        f=@(y) max((A(1,1)+y(1))*x1)+y(2);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit();
        y0=[1 1 1 1];
     else
         k=[0 0];
     end
-    con_tot=[con2;con];b_tot=[b2';b'];
     gs=GlobalSearch;gs.Display='off';
     if u_joint==1
         problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
@@ -94,12 +99,10 @@ elseif d==2
     if lin_ass==1 %k12=-A(1,2), k21=0
        f=@(y) -min((A(2,2)+y(3))*x2)-y(4);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit();
        y0=[1 1 1 1];
     else
        k=[0 0];
     end
-    con_tot=[con2;con];b_tot=[b2';b'];
     if u_joint==1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
     else
@@ -109,18 +112,14 @@ else % d=-2
     if opt_c==0
         x1=R(2,1);x2=R(2,2);
     end
-%     x1=[R(1,1) R(2,1) R(1,1) R(2,1)];
-%     x2=[R(1,2) R(2,2) R(2,2) R(1,2)];
     f=@(y) max([A(2,1)+y(4) A(2,2)+y(5)]*[x1;x2])+y(6);
     if lin_ass==1 %k12=-A(1,2), k21=0
        f=@(y) max((A(2,2)+y(3))*x2)+y(4);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit();
        y0=[1 1 1 1];
     else
         k=[0 0];
     end
-    con_tot=[con2;con];b_tot=[b2';b'];
     if u_joint==1
         [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
     else
