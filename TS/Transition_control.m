@@ -7,6 +7,15 @@ function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,
 %options = optimoptions('fmincon','TolX',1e-10);
 options=optimoptions('fmincon','display','none');
 y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
+
+    function [c,b]=controlLimits(type)
+        if type==0
+            [c,b]=constraints_general_lin(B,R,U,k);
+        else
+            c=[];b=[];
+        end
+    end
+
 if u_joint==0 %if umin<=ui<=umax for i=1,2 is used
     [con2, b2]=constraints_general(B,R,U);
 else %if (u1^2+u2^2)^(1/2)<=umax is used
@@ -34,11 +43,7 @@ if d==1
        f=@(y) max(-(A(1,1)+y(1))*x1)-y(2);
        [con, b]=constraints_specific_lin(R,d,A,eps); %update constraints
        k=[-A(1,2) -A(2,1)];
-       if u_joint==0% if umin<=ui<=umax i=1,2   
-           [con2, b2]=constraints_general_lin(B,R,U,k); %update general constraints
-       else %otherwise no more linear constraints are made
-           con2=[];b2=[];
-       end
+       [con2,b2]=controlLimit(u_joint);
        y0=[1 1 1 1]; %decrease number of unknown
     else
         k=[0 0];
@@ -61,11 +66,7 @@ elseif  d==-1
        f=@(y) max((A(1,1)+y(1))*x1)+y(2);
        [con, b]=constraints_specific_lin(R,d,A,eps);
        k=[-A(1,2) -A(2,1)];
-       if u_joint==0   
-           [con2, b2]=constraints_general_lin(B,R,U,k);
-       else
-           con2=[];b2=[];
-       end
+       [con2,b2]=controlLimit(u_joint);
        y0=[1 1 1 1];
     else
         k=[0 0];
@@ -88,11 +89,7 @@ elseif d==2
        f=@(y) -min((A(2,2)+y(3))*x2)-y(4);
        [con, b]=constraints_specific_lin(R,d,A,eps);
        k=[-A(1,2) -A(2,1)];
-       if u_joint==0   
-           [con2, b2]=constraints_general_lin(B,R,U,k);
-       else
-           con2=[];b2=[];
-       end
+       [con2,b2]=controlLimit(u_joint);
        y0=[1 1 1 1];
     else
        k=[0 0];
@@ -115,11 +112,7 @@ else % d=-2
        f=@(y) max((A(2,2)+y(3))*x2)+y(4);
        [con, b]=constraints_specific_lin(R,d,A,eps);
        k=[-A(1,2) -A(2,1)];
-       if u_joint==0   
-           [con2, b2]=constraints_general_lin(B,R,U,k);
-       else
-           con2=[];b2=[];
-       end
+       [con2,b2]=controlLimit(u_joint);
        y0=[1 1 1 1];
     else
         k=[0 0];
