@@ -8,11 +8,20 @@ function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,
 options=optimoptions('fmincon','display','none');
 y0=[1 1 -A(1,2) -A(2,1) 1 1]; %optimization guess
 
-    function [c,b]=controlLimits(type)
+    function [c,b]=controlLimits()
+        type=u_joint;
         if type==0
             [c,b]=constraints_general_lin(B,R,U,k);
         else
             c=[];b=[];
+        end
+    end
+    function [c,b]=velocityLimits()
+        type=lin_ass;
+        if type==1
+            [c,b]=constraints_specific_lin(R,d,A,eps);
+        else
+            [c,b]=constraints_specific(R,d,A,eps);
         end
     end
 
@@ -33,17 +42,17 @@ elseif opt_c==22 %max,max
 else  %middle
     x1=(R(2,1)+R(1,1))/2;x2=(R(2,2)+R(1,2))/2;
 end
+
+[con,b]=velocityLimits();
 if d==1
     if opt_c==0 %update postion depending on direction, min,min
         x1=R(1,1);x2=R(1,2);
     end
     f=@(y) max(-[A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])-y(3); %function to minimize
-    [con, b]=constraints_specific(R,d,A,eps); %constraints depending on direction
     if lin_ass==1 %if assumption: k12=-A(1,2), k21=-A(2,1)
        f=@(y) max(-(A(1,1)+y(1))*x1)-y(2);
-       [con, b]=constraints_specific_lin(R,d,A,eps); %update constraints
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit(u_joint);
+       [con2,b2]=controlLimit();
        y0=[1 1 1 1]; %decrease number of unknown
     else
         k=[0 0];
@@ -61,12 +70,10 @@ elseif  d==-1
         x1=R(2,1);x2=R(2,2);
     end
     f=@(y) max([A(1,1)+y(1) A(1,2)+y(2)]*[x1; x2])+y(3);
-    [con,b]=constraints_specific(R,d,A,eps);
     if lin_ass==1 %k12=0, k21=A(2,1)
        f=@(y) max((A(1,1)+y(1))*x1)+y(2);
-       [con, b]=constraints_specific_lin(R,d,A,eps);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit(u_joint);
+       [con2,b2]=controlLimit();
        y0=[1 1 1 1];
     else
         k=[0 0];
@@ -84,12 +91,10 @@ elseif d==2
         x1=R(1,1);x2=R(1,2);
     end
     f=@(y) -(min([A(2,1)+y(4) A(2,2)+y(5)]*[x1;x2])+y(6));
-    [con,b]=constraints_specific(R,d,A,eps);
     if lin_ass==1 %k12=-A(1,2), k21=0
        f=@(y) -min((A(2,2)+y(3))*x2)-y(4);
-       [con, b]=constraints_specific_lin(R,d,A,eps);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit(u_joint);
+       [con2,b2]=controlLimit();
        y0=[1 1 1 1];
     else
        k=[0 0];
@@ -107,12 +112,10 @@ else % d=-2
 %     x1=[R(1,1) R(2,1) R(1,1) R(2,1)];
 %     x2=[R(1,2) R(2,2) R(2,2) R(1,2)];
     f=@(y) max([A(2,1)+y(4) A(2,2)+y(5)]*[x1;x2])+y(6);
-    [con,b]=constraints_specific(R,d,A,eps);
     if lin_ass==1 %k12=-A(1,2), k21=0
        f=@(y) max((A(2,2)+y(3))*x2)+y(4);
-       [con, b]=constraints_specific_lin(R,d,A,eps);
        k=[-A(1,2) -A(2,1)];
-       [con2,b2]=controlLimit(u_joint);
+       [con2,b2]=controlLimit();
        y0=[1 1 1 1];
     else
         k=[0 0];
