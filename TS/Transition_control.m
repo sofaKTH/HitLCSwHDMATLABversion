@@ -1,5 +1,5 @@
 
-function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,u_joint)
+function [ K1, K2] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,u_joint)
 %Takes A,B which describes the system, U which is the limit of control, R
 %which is the rectangle and d which indicates the direction of the facet 
 %(1(x), -1(-x), -2(-y) or 2(y)).
@@ -13,7 +13,7 @@ function [ u_tranx, u_trank] = Transition_control( A,B,U,R,d ,opt_c,eps,lin_ass,
 %set options to remove print outs
 options=optimoptions('fmincon','display','none');
     function k=setConstants()
-        if lin_ass==1
+        if lin_ass==1 %assumes that the diagonal of K1 cancels the diagonal of A
             k=[-A(1,2) -A(2,1)];
         else
             k=[0 0];
@@ -79,6 +79,22 @@ options=optimoptions('fmincon','display','none');
             f=@(y) max([0 -1]*xdot(y));
         end
     end
+    function y=solveOptimization()
+        if u_joint==1
+            [y,~] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
+        else
+            [y,~] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
+        end
+    end
+    function [K1,K2]=getControlMatrices()
+        if lin_ass==1
+            K1=[y(1) k(1); k(2) y(3)];
+            K2=[y(2);y(4)];
+        else
+            K1=[y(1) y(2); y(4) y(5)];
+            K2=[y(3);y(6)];
+        end
+    end
 
 %set properties
 k=setConstants(); %assumed values on diagonal of K1
@@ -90,42 +106,8 @@ y0=setInitialGuess(); %initial optimization guess
 xdot=setSystemFunction(); %system dynamics
 f=setOptimizationFunction(); %function to minimize
 
-if d==1
-    gs=GlobalSearch;gs.Display='off';
-    if u_joint==1 %if unlinear constr are used
-        problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
-        [y,fmin,flag,outpt,allmins]=run(gs,problem);
-    else %if all constr are linear
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
-    end
-elseif  d==-1
-    gs=GlobalSearch;gs.Display='off';
-    if u_joint==1
-        problem=createOptimProblem('fmincon','x0',y0,'objective',f,'nonlcon',@(y)constraint_general_joint(y,B,R,U,lin_ass,k),'Aineq',con_tot,'bineq',b_tot,'options',options);
-        [y,fmin,flag,outpt,allmins]=run(gs,problem);
-    else
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
-    end
-elseif d==2
-    if u_joint==1
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
-    else
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
-    end
-else % d=-2
-    if u_joint==1
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],@(y)constraint_general_joint(y,B,R,U,lin_ass,k),options);
-    else
-        [y,feval,flag,output,lambda] = fmincon(f,y0,con_tot,b_tot,[],[],[],[],[],options);
-    end
-end
-%build matrices
-if lin_ass==1
-    u_tranx=[y(1) k(1); k(2) y(3)];
-    u_trank=[y(2);y(4)];
-else
-    u_tranx=[y(1) y(2); y(4) y(5)];
-    u_trank=[y(3);y(6)];
-end
+%solve problem and create matrices K1 and K2
+y=solveOptimization();
+[K1,K2]=getControlMatrices();
 end
 
