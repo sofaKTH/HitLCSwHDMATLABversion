@@ -82,27 +82,39 @@ truepath(env,gS, T, path_WTS);
 [ x2init, xl2init, t2,tinit2, ~ ]=onlineRun(envAut, gS2, T2, path_WTS2,ones(1,length(path_WTS2)),envAut.x0, zeros(1,6),0, 0,env,T,2,0);
 
 
-%% online run
+%% online run - initial settings
 
 % what are the possible inputs for uh?
-i=1; %current step in the discrete path
-k=1; %number of suggested paths
+k=1; %number of suggested paths at this time
 Ps{1}=P; Ps2{1}=P2;%product automata (initial settings)
 time0=cputime;
 Qd=hardConVio(P); Qd2=hardConVio(P2); %states in which the hard constraint is vioated
 QT=timedQd(Qd,P); QT2=timedQd(Qd2,P2);%pairs of state/time of which the hard constarint cannot be satisfied
 pt8=cputime-time0;
 
-%%
-x1=env.x0'; x2=envAut.x0';ds=0.1; eps=0.01;Tt=0;
-dT=0.015;compl=0;k=1;it=1;umax=3*env.U(2);it2=1;
-hrun.eps=eps; hrun.dt=ds; hrun.QT=QT;count=0;
-follow1=P.init; follow2=P2.init;Twodone=0; Onedone=0;
-stop1T=0; stop2T=0;hk=0.5; allT1=[0];allT2=[0];
-a1.Init.dd=0; a2.Init.dd=0;a1.Init.dc=0; a2.Init.dc=0;
-T1max=dT*5; T2max=dT+0.001;a1.Init.dh=0;a2.Init.dh=0;
-xltot=[x1]; ttot=[0];xltot2=[x2]; ttot2=[0];dummy=1;
+x1=env.x0'; x2=envAut.x0'; % initial positions
+umax=3*env.U(2); %max allowed input
+ds=0.1; eps=0.01; %safety margins
+Tt=0; %initial time
+dT=0.015; %time step
+compl=0;%completion variable (1 when task is achieved)
+it=1;it2=1; %current step in WTS path for each agent (i.e. number of states agent has visisted so far)
+count=0;    % number of iterations performed of the onine run (number of possibilities for human to interefer) until now
+hrun.eps=eps; hrun.dt=ds; hrun.QT=QT; %bundling settings to varaible hrun
+follow1=P.init; follow2=P2.init; %current path (i.e. states visited so far in order)
+Twodone=0; Onedone=0; % flag varaibles indicating that each agent has completed its task (1 if done)
+stop1T=0; stop2T=0; %time each agent has been standing still sense last moving
+hk=h0; %current guess for h (preference) 
+allT1=[0];allT2=[0]; %total time which has passed sense start
+a1.Init.dd=0; a2.Init.dd=0; %initial discrete distance
+a1.Init.dc=0; a2.Init.dc=0; %initial continiuous distance
+a1.Init.dh=0;a2.Init.dh=0;  %initial hybird distance
+T1max=dT*5; T2max=dT+0.001; %maximal tome each agent is allowed to stand still before action is taken
+xltot=[x1]; xltot2=[x2];  %complete discrete trajectory taken so far (as positions rather than states)
+ttot=[0];ttot2=[0]; %array of time instances at which the agents reached the posiont of the xltot vectors
+dummy=1; %flag variable used during testing to see which loop issued trouble
 
+%% online run - the run!
 partition_viz_simple({T,T2}, {env,envAut},1,'Online Run');
 
 while compl~=1
