@@ -52,26 +52,22 @@ tafpa=datestr(now);
 fprintf(fileID, ' Product Construction \t %f\t %f\n', pt5,pt5b);
 %% graph search
 h0=0.5;
-%initial search gives initial plan!
-%humna controlled
+
+%human controlled agent (no subscript)
 time0=cputime;
 [gS ] = graphSearch( P,h0 );
-pt6=cputime-time0;
-%fprintf(fileID, 'Initial graph search \t %f', pt6);
+pt6=cputime-time0; %computation time for graph searching
 path_WTS=wtsProject(gS.path, P);
-%fprintf(fileID, '\hline Projection onto WTS & %f\\', pt7);
 GS={};pWTS={}; Ps={};
-GS{1}=gS;
-pWTS{1}=path_WTS;
-%autom
+GS{1}=gS;pWTS{1}=path_WTS;
+
+%automatic agent (subscript 2)
 time0=cputime;
 [gS2 ] = graphSearch( P2,h0 );
 pt7=cputime-time0;
-%fprintf(fileID, '\t%f\n', pt7);
 path_WTS2=wtsProject(gS2.path, P2);
 GS2={};pWTS2={}; Ps2={};
-GS2{1}=gS2;
-pWTS2{1}=path_WTS2;
+GS2{1}=gS2;pWTS2{1}=path_WTS2;
 fprintf('Graph search completed\n');
 
 %% viz derivative inside the states in the path
@@ -91,17 +87,12 @@ truepath(env,gS, T, path_WTS);
 % what are the possible inputs for uh?
 i=1; %current step in the discrete path
 k=1; %number of suggested paths
-Ps{1}=P;
+Ps{1}=P; Ps2{1}=P2;%product automata (initial settings)
 time0=cputime;
-Qd=hardConVio(P);
-QT=timedQd(Qd,P);
+Qd=hardConVio(P); Qd2=hardConVio(P2); %states in which the hard constraint is vioated
+QT=timedQd(Qd,P); QT2=timedQd(Qd2,P2);%pairs of state/time of which the hard constarint cannot be satisfied
 pt8=cputime-time0;
-Ps2{1}=P2;
-Qd2=hardConVio(P2);
-QT2=timedQd(Qd2,P2);
-pt8b=cputime-pt8;
 
-%fprintf(fileID, ' Constructing Q_T^t \t %f\t %f\n', pt8,pt8b);
 %%
 x1=env.x0'; x2=envAut.x0';ds=0.1; eps=0.01;Tt=0;
 dT=0.015;compl=0;k=1;it=1;umax=3*env.U(2);it2=1;
