@@ -23,8 +23,8 @@ for k=1:2
     taPath=taProject(uniPath,P);
     stateTrans=[x(1) y(1) t(1) uniPath(1) wtsPath(1) taPath(1)];
     
-    step=2;
-    for i=2:length(t)
+    step=2;i=2;
+    while step<=length(uniPath) && i<=length(t)
         if wtsPath(step)~=wtsPath(step-1)
             %transition requires entering new region
             if x(i)>=T.R(1,1,wtsPath(step)) &&x(i)<=T.R(2,1,wtsPath(step))&&y(i)>=T.R(1,2,wtsPath(step))&&y(i)<=T.R(2,2,wtsPath(step))
@@ -41,16 +41,20 @@ for k=1:2
                 stateTrans=[stateTrans; x(i) y(i) t(i) uniPath(step) wtsPath(step) taPath(step)];step=step+1;
             end
         end
-        if step>length(uniPath)
-            break;
-        end
+        i=i+1;
     end
     %stateTrans now contain all transitionspoints
     dc=0; dd=0;
-    for i=1:size(stateTrans,1)-1
-        q=stateTrans(i,4); dT=stateTrans(i+1,3)-stateTrans(i,3);
+    if size(stateTrans,1)==1
+        q=stateTrans(1,4); dT=t(end);
         dc=dc+P.Ih(q,1)*dT;
         dd=dd+P.Ih(q,2)*dT;
+    else
+        for i=1:size(stateTrans,1)-1
+            q=stateTrans(i,4); dT=stateTrans(i+1,3)-stateTrans(i,3);
+            dc=dc+P.Ih(q,1)*dT;
+            dd=dd+P.Ih(q,2)*dT;
+        end
     end
     dh=h*dc+(1-h)*dd;
     DC{k}=dc; DD{k}=dd; DH{k}=dh;
