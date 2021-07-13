@@ -117,12 +117,12 @@ dummy=1; %flag variable used during testing to see which loop issued trouble
 %% online run - the run!
 partition_viz_simple({T,T2}, {env,envAut},1,'Online Run');
 
-while compl~=1
-    pi1curr=P.S(follow1(end),1);
-    pi2curr=P2.S(follow2(end),1);
-    QT1temp=[]; QT2temp=[]; 
-    succ1=find(P.trans(follow1(end),:)~=Inf);
-    succ2=find(P2.trans(follow2(end),:)~=Inf);
+while compl~=1 %while taks is not completed
+    pi1curr=P.S(follow1(end),1);pi2curr=P2.S(follow2(end),1); %current regions
+    QT1temp=[]; QT2temp=[]; %states which are temporally violating
+    succ1=find(P.trans(follow1(end),:)~=Inf);succ2=find(P2.trans(follow2(end),:)~=Inf);%possible successors (states we can move to)
+    %update violating states to include any state which require the agent
+    %to be in the region which the other agent is currently in
     for q=succ1
         if P.S(q,1)==pi2curr
             QT1temp=[QT1temp; q 0];
@@ -133,34 +133,33 @@ while compl~=1
             QT2temp=[QT2temp; q 0];
         end
     end
-    hrun.QT=[QT; QT1temp];
-    count=count+1;
-    if Onedone==0
-       % fprintf('a2 is at %d, and it is %d\n', q22, it2);
-        inputX=humanInput2(pWTS{k},it);
+    hrun.QT=[QT; QT1temp]; %add tempo violating states to the set of violating states
+    count=count+1; %add to the number of iterations
+    if Onedone==0 %agent 1 has not completetd its task
+        inputX=humanInput2(pWTS{k},it); %get input from user
         time0=cputime;
-    else
-        inputX='1';
-        %fprintf('Loop %d after a1 finished\t it2=%d\n', dummy, it2 );
-        dummy=dummy+1;
+    else %agent 1 has completed its task
+        inputX='1'; %no input needed
+        dummy=dummy+1; %add to number of iterations when only agent 2 is moving
     end
-    if strcmp(inputX, '1')
+    if strcmp(inputX, '1') %human gives no input
         %drive on
-        if Onedone==0
-            step=pWTS{k}(it:it+1);
-            if pi2curr==pWTS{k}(it+1)
-                step=[pWTS{k}(it) pWTS{k}(it)];
-                stop1=1;
+        if Onedone==0 %task is not completed
+            step=pWTS{k}(it:it+1); %the current and next region accorfing to aut plan
+            if pi2curr==pWTS{k}(it+1) %agent 2 is in the next region
+                step=[pWTS{k}(it) pWTS{k}(it)]; %new plan is to stop and wait
+                stop1=1; %flag indicating that we stopped
             else
                 stop1=0;
             end
+            % determine the trajectory given the input and the plan
+            % outputs: trajectory, new position, process time, time vector,
+            % current time, kappa(mic), flag =1 if new region entered
             [ x1d, xl, TIME,tsteps, outTime, K , exit1]=onlineRun(env, GS{end}, T, step,dT,x1(:,end), zeros(1,6) ,count-1, Tt,envAut,T2,min(1,count-1), 0);
-            if length(tsteps)~=length(x1d)
-                fprintf('diff length at follow1, it=%d\n',it);
-            end
-             x1=[x1 x1d]; xltot=[xltot xl(:,2:end)]; ttot=[ttot TIME(2:end)];allT1=[allT1 tsteps+allT1(end)];
+             x1=[x1 x1d]; xltot=[xltot xl(:,2:end)]; %complete trajectories 
+             ttot=[ttot TIME(2:end)];allT1=[allT1 tsteps+allT1(end)]; %complete time vectors
         end
-        if Twodone==0
+        if Twodone==0 %agent 2 has not completed its task
             step=pWTS2{end}(it2:it2+1);
             if pi1curr==pWTS2{end}(it2+1)
                 step=[pWTS2{end}(it2) pWTS2{end}(it2)];
@@ -168,27 +167,23 @@ while compl~=1
             else
                 stop2=0;
             end
-            [ x2d, xl, TIME,tsteps, test,test,exit2 ]=onlineRun(envAut, GS2{end}, T2, step,dT,x2(:,end), zeros(1,6),count-1, Tt,env,T,2,0);x2=[x2 x2d];
-            if length(tsteps)~=length(x2d)
-                fprintf('diff length at follow2, it=%d\n',it2);
-            end
-            xltot2=[xltot2 xl(:,2:end)]; ttot2=[ttot2 TIME(2:end)];allT2=[allT2 tsteps+allT2(end)];
+            [ x2d, xl, TIME,tsteps, test,test,exit2 ]=onlineRun(envAut, GS2{end}, T2, step,dT,x2(:,end), zeros(1,6),count-1, Tt,env,T,2,0);
+            x2=[x2 x2d];xltot2=[xltot2 xl(:,2:end)]; 
+            ttot2=[ttot2 TIME(2:end)];allT2=[allT2 tsteps+allT2(end)];
         end
-        %check state
-        if 0==0
-            [ q2,err] = currentStateCalc( follow1(end), Tt+dT,P, T,x1(:,end) ,TAhd);
-        end
-        if 0==0
-            [q22,err]=currentStateCalc( follow2(end), Tt+dT,P2, T2,x2(:,end) ,TAhd1);
-        end
+        %update current state given previous state, time elapsed and
+        %current region
+        [ q2,err] = currentStateCalc( follow1(end), Tt+dT,P, T,x1(:,end) ,TAhd);
+        [q22,err]=currentStateCalc( follow2(end), Tt+dT,P2, T2,x2(:,end) ,TAhd1);
+        %add current state to path
         follow1=[follow1 q2]; follow2=[follow2 q22];
         %update settings
         Current=easyCurr( follow1(length(follow1)-1),q2,it, Tt+dT, a1.Init.dd, a1.Init.dc);
         Current2=easyCurr( follow2(length(follow2)-1),q22,it2, Tt+dT, a2.Init.dd, a2.Init.dc );
         a1.Init= init4P(Current,P); a2.Init= init4P(Current2,P2);
-        if Onedone==0
-            if P.S(q2,1)==pWTS{k}(it+1)
-                it=it+1;
+        if Onedone==0 %agent 1 is not done
+            if P.S(q2,1)==pWTS{k}(it+1) %current region is the planned successor
+                it=it+1; %progress in plan one step
             end
         end
         if Twodone==0
@@ -196,8 +191,8 @@ while compl~=1
                 it2=it2+1;
             end
         end
-        Tt=Tt+dT;
-    else
+        Tt=Tt+dT; %add elapsed time to current time
+    else %human gives input!
         %determine Uh 
         [Uh, err]=easyControl(inputX, umax);
         %evolve
@@ -211,10 +206,8 @@ while compl~=1
             stop1=0;
         end
         [ x1d, xl, TIME,tsteps,outTime, K,exit1 ]=onlineRun(env, GS{end}, T, step,dT,x1(:,end), Uh ,count-1, Tt,envAut,T2,min(1,count-1),0, hrun);
-        if length(tsteps)~=length(x1d)
-            fprintf('diff length at follow1, it=%d\n',it);
-        end
-        xltot=[xltot xl(:,2:end)]; ttot=[ttot TIME(2:end)];allT1=[allT1 tsteps+allT1(end)];
+        x1=[x1 x1d]; xltot=[xltot xl(:,2:end)]; 
+        ttot=[ttot TIME(2:end)];allT1=[allT1 tsteps+allT1(end)];
         if Twodone==0
             step=pWTS2{end}(it2:it2+1);
             if pi1curr==pWTS2{end}(it2+1)
@@ -223,13 +216,11 @@ while compl~=1
             else
                 stop2=0;
             end
-            [ x2d, xl, TIME ,tsteps, test,test,exit2]=onlineRun(envAut, GS2{end}, T2, step,dT,x2(:,end), zeros(1,6),count-1, Tt,env,T,2,0);x2=[x2 x2d];
-            if length(tsteps)~=length(x2d)
-                fprintf('diff length at follow2, it=%d\n',it2);
-            end
-            xltot2=[xltot2 xl(:,2:end)]; ttot2=[ttot2 TIME(2:end)];allT2=[allT2 tsteps+allT2(end)];
+            [ x2d, xl, TIME ,tsteps, test,test,exit2]=onlineRun(envAut, GS2{end}, T2, step,dT,x2(:,end), zeros(1,6),count-1, Tt,env,T,2,0);
+            x2=[x2 x2d];xltot2=[xltot2 xl(:,2:end)]; 
+            ttot2=[ttot2 TIME(2:end)];allT2=[allT2 tsteps+allT2(end)];
         end
-        x1=[x1 x1d]; 
+    
         %check state
         if 0==0
             [ q2,err] = currentStateCalc( follow1(end), Tt+dT,P, T,x1(:,end) ,TAhd);
@@ -248,9 +239,9 @@ while compl~=1
         %if new state and not previous goal state learn!
         pt9=cputime-time0;
         %fprintf(fileID, ' Matlab Spec. determining where to go \t %f\n', pt9);
-        if P.S(q2,1)~=pWTS{k}(it) && P.S(q2,1)~=pWTS{k}(it+1)
+        if P.S(q2,1)~=pWTS{k}(it) && P.S(q2,1)~=pWTS{k}(it+1) %current region is not the start or goal of the current step from plan
             time0=cputime;
-            [ plan ] = learnh( Ps{end}, k, GS, Current ); 
+            [ plan ] = learnh( Ps{end}, k, GS, Current ); %replan and find new h
             pt10=cputime-time0;
             %fprintf(fileID, 'Learning h \t %f\n', pt10);
             plan.Current=Current;
@@ -260,7 +251,8 @@ while compl~=1
             Ps{k}=plan.P;
             pWTS{k}=wtsProject(plan.gS.path, P);
             hk=plan.h;
-            %increase it
+            %increase it (the new plan will begin with the path we
+            %followed)
             it=it+1;
         elseif P.S(q2,1)==pWTS{k}(it+1)
             %we followed robots plan, increase it
@@ -273,44 +265,43 @@ while compl~=1
         end
         Tt=Tt+dT;
     end
-    if it==length(pWTS{k})
+    if it==length(pWTS{k}) %the number of states we visited=number of states in th eplan
         Onedone=1;
     end
     if it2==length(pWTS2{end})
         Twodone=1;
     end
-    if Onedone==1 && Twodone==1
+    if Onedone==1 && Twodone==1 %both agents are done
         compl=1;
     end
-    if stop1==1
-        stop1T=stop1T+dT;
-    else
-        stop1T=0;
+    if stop1==1 %agent 1 is waiting due to agents 2 being in the way
+        stop1T=stop1T+dT;%add to time it has been waiting
+    else %agent 1 is not waiting
+        stop1T=0; %reset time it has been waiting
     end
     if stop2==1
         stop2T=stop2T+dT;
     else
         stop2T=0;
     end
-    if stop1T> T1max
+    if stop1T> T1max %the allowed time to wait has passed
         time0=cputime;
-        Ptemp=P;
-        for q=QT1temp(:,1)'
-            Ptemp.trans(q,:)=ones(1,length(P.Q))*Inf;
+        Ptemp=P; %copy product
+        for q=QT1temp(:,1)' %all temporally violating states (due to agent 2 being in them)
+            Ptemp.trans(q,:)=ones(1,length(P.Q))*Inf; %make all trans from q impossible
         end
         k=k+1;
         Ptemp.init=q2;
         a1.Init.dh=hk*a1.Init.dc+(1-hk)*a1.Init.dd;
-        GS{k}=graphSearch(Ptemp,hk, a1.Init);
+        GS{k}=graphSearch(Ptemp,hk, a1.Init); %re plan with the vio states excluded
         pt11=cputime-time0;
         %fprintf(fileID, 'Collision Avoidance Re-planning \t %f\n', pt11);
         GS{k-1}.index=length(x1);
         GS{k-1}.lastit=it;
-        if GS{end}.Ftime==Inf
-            %no path found == need to pass through the state at some time
+        if GS{end}.Ftime==Inf %no path found == need to pass through the state at some time
             %new task: move out of the way!
             time0=cputime;
-            succ=find(Ptemp.trans(q2,:)~=Inf);
+            succ=find(Ptemp.trans(q2,:)~=Inf); %all possible states we can move to
             goal=[];
             for s=succ
                 if ~timeMember(s,QT1temp,Tt)&& Ptemp.S(s,1)~=Ptemp.S(q2,1)
@@ -342,7 +333,7 @@ while compl~=1
             GS{end}.DD=[GS{end}.DD gSnew.DD(1:end)+GS{end}.DD(end)-GS{end}.DD(length(GS{end}.DD)-1)];
             GS{end}.DC=[ GS{end}.DC gSnew.DC(1:end)+GS{end}.DC(end)-GS{end}.DC(length(GS{end}.DC)-1)];
             pWTS{end+1}=wtsProject(GS{end}.path, Ps{end});
-        else
+        else %new path exists wich doesn't use the occupied one
             GS{end}.path=[GS{length(GS)-1}.path(1:it), GS{end}.path(2:end)];
             GS{end}.time_vector=[GS{length(GS)-1}.time_vector(1:it), GS{end}.time_vector(2:end)];
             GS{end}.DD=[GS{length(GS)-1}.DD(1:it), GS{end}.DD(2:end)];
