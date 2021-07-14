@@ -17,7 +17,11 @@ fprintf(fileID, ' Process \t Computation Time\n Environment setting \t %f\n', pt
 %env=env1();
 %% WTS
 time0=cputime;
-absSet.opt_c=33;absSet.eps=0.5;absSet.u_joint=0;absSet.lin_ass=0;absSet.rest=0.001;
+absSet.opt_c=11;% which corner of the initial region we're optimizing the vel for (11,12,21,22 or other (middle))
+absSet.eps=0.1;% velocity agent must have away from other facets, at given facet during transition
+absSet.u_joint=0;% control limit is per index vs joint: u_i<umax or sqrt(sum(u_i^2))<umax
+absSet.lin_ass=0;% asumption that closed-loop sys has no independencies between stattes
+absSet.rest=0.001;% time for self-transitions
 T=TS_construction(env,absSet);
 pt2=cputime-time0;
 T2=TS_construction(envAut,absSet);
@@ -93,10 +97,10 @@ QT=timedQd(Qd,P); QT2=timedQd(Qd2,P2);%pairs of state/time of which the hard con
 pt8=cputime-time0;
 
 x1=env.x0'; x2=envAut.x0'; % initial positions
-umax=3*env.U(2); %max allowed input
+umax=env.U(2); %max allowed input
 ds=0.1; eps=0.01; %safety margins
 Tt=0; %initial time
-dT=0.015; %time step
+dT=0.05; %time step
 compl=0;%completion variable (1 when task is achieved)
 it=1;it2=1; %current step in WTS path for each agent (i.e. number of states agent has visisted so far)
 count=0;    % number of iterations performed of the onine run (number of possibilities for human to interefer) until now

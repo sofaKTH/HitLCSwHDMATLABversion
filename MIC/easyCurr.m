@@ -17,7 +17,8 @@ if stop==0
     currdc=zeros(1,length(GS));currdd=zeros(1,length(GS));A=Data.A;
 
     for i=1:length(GS)
-        index=GS{i}.index; lastit=GS{i}.lastit; t0=allT(index);
+        index=GS{i}.index; 
+        t0=allT(index);
         x=X(index); y=Y(index);xsim=[x];ysim=[y]; tsim=[t0];
         for l=GS{i}.lastit+1:length(GS{i}.path)-1
             q1=wtsProject(GS{i}.path(l),p);q2=wtsProject(GS{i}.path(l+1),p);
