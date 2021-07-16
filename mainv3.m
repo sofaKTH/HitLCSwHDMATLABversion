@@ -118,7 +118,10 @@ xltot=[x1]; xltot2=[x2];  %complete discrete trajectory taken so far (as positio
 ttot=[0];ttot2=[0]; %array of time instances at which the agents reached the posiont of the xltot vectors
 dummy=1; %flag variable used during testing to see which loop issued trouble
 
+
 %% online run - the run!
+%before rerunning this the initial graph search has to be performed again
+%to delete any other results .
 partition_viz_simple({T,T2}, {env,envAut},1,'Online Run');
 
 while compl~=1 %while taks is not completed
