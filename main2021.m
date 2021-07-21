@@ -23,11 +23,17 @@ TAhd=hybridTAsoftandhard([0.5 0.9]);
 fprintf('TAhd is constructed \n');
 
 %% Sparse WTS
+sWTS=sparseWTS(dWTS, TAhd.AP);
 
+fprintf('Sparse WTS constructed\n');
 %% Visualize the WTS
 %sparse and dense in one image would be nice
-
-
+color={'b','g','y','c','m','r', 'w'};
+colormap=zeros(max(sWTS.L),1);
+colormap(1)=3; colormap(2)=1; colormap(4)=4; colormap(8)=5; colormap(16)=6;
+cm.color=color; cm.colormap=colormap;
+visWTScombo(dWTS,sWTS,cm);
+%FIX POSE OF TEXTS!
 %% PA
 %needs upadtes to match new WTS
 P=product2(T,TAhd,2);
