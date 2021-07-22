@@ -14,21 +14,27 @@ for ss=sWTS.S
         fill(x,y,col,'LineStyle','none');
         hold on;
     end
-    cx=(R(1,2)+R(1,1))/2; cy=(R(2,2)+R(2,1))/4;
+    R=dWTS.R(:,:,dS(1));
+    cx=(R(2,1)+R(1,1))/2; cy=(R(2,2)+3*R(1,2))/4;
     txt=['s_s=' num2str(ss)];
     t=text(cx,cy,txt);
-    t.FontSize=12;
+    t.FontSize=8;
     hold on;
+    if ds==sWTS.current
+        cy=cy-(R(2,2)-R(1,2))/8;
+        t3=text(cx,cy,'init');
+        t3.FontSize=8;
+    end
     if ~isempty(dWTS.simple_label{ds})
         txt2=' L=';
         for l=dWTS.simple_label{ds}
             txt2=[txt2 num2str(l) ', '];
         end
     else 
-        txt2='L=0';
+        txt2='';
     end
-    t2=text(cx, cy-(R(2,2)+R(2,1))/8, txt2);
-    t2.FontSize=11;
+    t2=text(cx, cy-(R(2,2)-R(1,2))/8, txt2);
+    t2.FontSize=8;
     hold on;
 end
 %dense WTS part
@@ -38,7 +44,7 @@ for ds=dWTS.S
     y=[R(1,2), R(2,2), R(2,2), R(1,2), R(1,2)];
     plot(x,y,':k');
     hold on
-    cx=(R(1,2)+R(1,1))/2; cy=(R(2,2)+R(2,1))/2;
+    cx=(R(2,1)+R(1,1))/2; cy=(R(2,2)+R(1,2))/2;
     txt=['s_d=' num2str(ds)];
     t=text(cx,cy,txt);
     t.FontSize=8;
