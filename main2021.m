@@ -7,7 +7,8 @@ clear all
 npools=str2num(getenv('NUMBER_OF_PROCESSORS'));
 logname=['logs/logtimes' datestr(now,'mmddHHMM') '.txt'];
 fileID=fopen(logname,'w');
-addpath('BWTS','environment','figures','HRI and learning', 'logs', 'MIC','path','TAhd','TS','visualization' );
+addpath('BWTS','environment','figures','HRI and learning', 'logs', 'MIC',...
+    'path','TAhd','TS','visualization', 'Trajectories' );
 %% environment settings
 % test both with some circles and he same setup as CASE
 env=env2(); %CASE
@@ -42,76 +43,107 @@ fprintf('Product Construction\n');
 %% initial graph search
 h0=0.5;
 
-%may need some upadtes to match new P
 [gS ] = graphSearchSparse( P,h0 );
 path_sWTS=wtsProject(gS.path, P);
+path_WTS = denseWTSProject(path_sWTS, sWTS, dWTS);
 
 fprintf('Graph search completed\n');
 
 %% viz derivative inside the states in the path
-fastfig(T,path_WTS,env); %dense path
+fastfig(dWTS,path_WTS,env); %dense path
     
 %% viz the actual path taken
-truepath(env,gS, T, path_WTS);
+truepath(env,gS, dWTS, path_WTS);
 
 %% online run - initial settings
-
+GS={};GS{1}=gS;%reset set of found paths
+k=1; %current number of plans
+Pr={}; Pr{1}=P;%reset product
+h=h0;%set value of human preference
+taskComplete=0;
+qnow=P.init;%initial state
+humanAbort=0; %human prompted stop
+time=0;  %time vector
+x=env.x0';
 %% online run - the run!
 %have in mind that if human press 1 the actual transition should occur
 %before asking again
-%% the final paths ploted
-X={x1(1,:),x2(1,:)}; Y={x1(2,:), x2(2,:)}; 
-XL={xltot(1,:), xltot2(1,:)};YL={xltot(2,:), xltot2(2,:)};
-TIME={ttot, ttot2}; Tb={T, T2}; envb={env2, envAut};
- plotPath( X,Y,XL,YL,TIME,Tb,envb );
- %% animate final
- r=0.1;ColOr={[0.9100    0.4100    0.1700],[1 0 1]}; del=10;
- stamp=datestr(now,'mmddHHMM');
- stamp='4Animation';
- for step=1:del:length(X{2})+3
-     f=figure;
-     XI={x1init(1,:),x2init(1,:)}; YI={x1init(2,:), x2init(2,:)}; 
-     XL={xl1init(1,:), xl2init(1,:)};YL={xl1init(2,:), xl2init(2,:)};
-     TIME={t1, t2}; Tb={T, T2}; envb={env2, envAut};
-     plotPath2( XI,YI,XL,YL,TIME,Tb,envb );
-     hold on
-     if step>length(X{1})
-        c1=[X{1}(end) Y{1}(end)];
-     else
-        c1=[X{1}(step) Y{1}(step)]; 
-     end
-     if step>length(X{2})
-        c2=[X{2}(end) Y{2}(end)];
-     else
-    c2=[X{2}(step) Y{2}(step)]; 
-     end
-     pos1 = [c1-r 2*r 2*r]; pos2=[c2-r 2*r 2*r];
-     rectangle('Position',pos1,'Curvature',[1 1], 'FaceColor', ColOr{1}, 'Edgecolor','none')
-     hold on
-     rectangle('Position',pos2,'Curvature',[1 1], 'FaceColor', ColOr{2}, 'Edgecolor','none')
-     axis equal
-     if step>length(X{1})
-         plot(X{1},Y{1},'Color', ColOr{1});
-     else
-        plot(X{1}(1:step),Y{1}(1:step),'Color', ColOr{1});
-     end
-     if step>length(X{2})
-         plot(X{2},Y{2}, 'Color', ColOr{2});
-     else
-        plot(X{2}(1:step),Y{2}(1:step), 'Color', ColOr{2});
-     end
-     saveas(f,['figures/FIG' stamp int2str(step)],'png');
- end
- close all;
- 
 
- %% Resulting values of dist
- X={x1(1,:),x2(1,:)}; Y={x1(2,:), x2(2,:)}; 
- allT={allT1, allT2}; follow={follow1,follow2};p={P,P2};H={hk,h0};
- [dd_real, dc_real, dh_real, trans]=realDistances(X,Y,Tb,follow, allT,p,H);
- 
- %% the actual initial distances
-  X={x1init(1,:),x2init(1,:)}; Y={x1init(2,:), x2init(2,:)}; 
-  allT={tinit1, tinit2}; follow={gS.path, gS2.path}; p={P,P2}; H={h0,h0};
- [dd_realI, dc_realI, dh_realI, trans]=realDistances(X,Y,Tb,follow, allT,p,H);
 
+
+while taskComplete==0 && humanAbort==0
+    %create prompt text
+    prompt=printPlan(GS{k},Pr{k}, indp);
+    tit='Human feedback';
+    %ask for feedback
+    [list,rem]=printOptions(GS{k}, Pr{k}, indp);
+    [uh, stat]=listdlg('ListString', list, 'PromptString', prompt,...
+        'SelectionMode','single', 'InitialValue',1,'Name', tit,...
+        'OKString', 'Apply', 'CancelString', 'Abort!');
+    %check what feedback was given 
+    if stat==0 %abort!
+        humanAbort=1; break;
+    elseif uh==1
+        %no feedback -> execute first step of plan and go back to step 1
+        %fix s1 and s2 :)
+        T=0.1;
+        while checkRegion(x(:,end),dWTS)==s1
+            [xstep,tstep]=followPlan(s1,s2,env,dWTS,T,x(:,end));
+            x=[x xstep(:,2:end)];time=[time tstep(2:end)+time(end)];
+        end
+    else
+        %feedback -> apply MIC to move agent until new state is reached
+        
+        %convert uh to match specific action (2=up, 3=down, 4=left,
+        %5=right) rem=index of option removed from poss feedback
+        if uh>=rem
+            uh=uh+1;
+        end
+
+        % Learn new h and replan, go back to step 1
+    end
+
+    %check if accepting state is reached if yes, stop
+
+end
+
+%% functions (must be at the end of the script)
+function [txt]=printPlan(gs,p, ic)
+qc=gs.path(ic);
+txt='The current plan is: ';
+wp=wtsProject(gs.path,p);
+for i=1:length(wp)-1
+    txt=[txt num2str(wp(i)) '->'];
+end
+txt=[txt num2str(wp(end)) '\n (or projected on the dWTS: '];
+wp=denseWTSProject(wtsProject(gs.path,p), sWTS, dWTS);
+for i=1:length(wp)-1
+    txt=[txt num2str(wp(i)) '->'];
+end
+txt=[txt num2str(wp(end)) ')\n The agent is currently at ' num2str(wtsProject(qc,p)),...
+    ' (or ' num2str(sWTS.map{wtsProject(qc,p)}) ')\n Do you want to follow the plan? (Pick one option!)'];
+end
+
+function [listop, rem]=printOptions(gs,p, ic)
+listop={'Yes, continue with the plan!','No, move up.', 'No, move down', 'No, move left', 'No, move right'};
+qc=gs.path(ic); qn=gs.path(ic+1);
+ssc=wtsProject(qc,p);ssn=wtsProject(qn,p);
+sdc=sWTS.map{ssc};sdn=sWTS.map{ssn};
+if sdn==sdc+1 && mod(sdc,length(dWTS.S)/dWTS.N1)~=0
+    %plan is to go up
+    listop(2)=[]; %removing as feedback option to go up
+    rem=2;
+elseif sdn==sdc-1 && mod(sdn,length(dWTS.S)/dWTS.N1)~=0
+    %plan is to go down
+    listop(3)=[]; %removing as feedback option to go down
+    rem=3;
+elseif sdn==sdc-length(dWTS.S)/dWTS.N1 && sdc> length(dWTS.S)/dWTS.N1
+    %plan is to go left
+    listop(4)=[]; %removing as feedback option to go left
+    rem=4;
+else
+    %plan is to go right
+    listop(5)=[]; %removing as feedback option to go right
+    rem=5;
+end
+end

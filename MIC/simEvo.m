@@ -8,15 +8,13 @@ function [ t ,xq, K] = simEvo( q1,q2,A,TS,x0,y0,T, Uh,QT,T0,dt,eps,umax )
  a21=A(2,1);%+Ua21(q1,q2);
  a22=A(2,2);%+Ua22(q1,q2);
  b1=Ub1(q1,q2);b2=Ub2(q1,q2);
- Astar=[a11 a12;a21 a22];
- Bstar=[b1; b2];
  high=length(TS.S)/TS.N1;
  max=length(TS.S);
  [t,xq, K]=ode45(@myfun,[0,T],[x0;y0]);
     function [dx,K]=myfun(t,x)
-    dx1=[a11 a12; a21 a22]*x;%+[b1;b2];
-    dx2=[Uh(1:2); Uh(3:4)]*x+[Uh(5); Uh(6)];
-    dx3=[Ua11(q1,q2) Ua12(q1,q2); Ua21(q1,q2) Ua22(q1,q2)]*x+[b1; b2];
+    dx1=[a11 a12; a21 a22]*x;%system dynamics without control
+    dx2=[Uh(1:2); Uh(3:4)]*x+[Uh(5); Uh(6)]; %human fedback
+    dx3=[Ua11(q1,q2) Ua12(q1,q2); Ua21(q1,q2) Ua22(q1,q2)]*x+[b1; b2]; %planned feedback
     ds=ones(1,4)*Inf;
     if q1-high>0
         if timeMember(q1-high,QT, T0+T)
