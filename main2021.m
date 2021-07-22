@@ -7,6 +7,7 @@ clear all
 npools=str2num(getenv('NUMBER_OF_PROCESSORS'));
 logname=['logs/logtimes' datestr(now,'mmddHHMM') '.txt'];
 fileID=fopen(logname,'w');
+addpath('BWTS','environment','figures','HRI and learning', 'logs', 'MIC','path','TAhd','TS','visualization' );
 %% environment settings
 % test both with some circles and he same setup as CASE
 env=env2(); %CASE
@@ -33,18 +34,17 @@ colormap=zeros(max(sWTS.L),1);
 colormap(1)=3; colormap(2)=1; colormap(4)=4; colormap(8)=5; colormap(16)=6;
 cm.color=color; cm.colormap=colormap;
 visWTScombo(dWTS,sWTS,cm);
-%FIX POSE OF TEXTS!
+
 %% PA
-%needs upadtes to match new WTS
-P=product2(T,TAhd,2);
+P=sparseProduct(sWTS,TAhd,2);
 
 fprintf('Product Construction\n');
 %% initial graph search
 h0=0.5;
 
 %may need some upadtes to match new P
-[gS ] = graphSearch( P,h0 );
-path_WTS=wtsProject(gS.path, P);
+[gS ] = graphSearchSparse( P,h0 );
+path_sWTS=wtsProject(gS.path, P);
 
 fprintf('Graph search completed\n');
 
