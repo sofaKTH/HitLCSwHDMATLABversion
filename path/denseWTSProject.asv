@@ -13,8 +13,7 @@ for is=1:length(path)-1
     elseif is==1
         dpath=[current]; dp=current;
     else
-        dpath=[dpath sWTS.traj{path(is-1),path(is)}(end)]; 
-        dp=sWTS.traj{path(is-1),path(is)}(end);
+        dpath=[dpath sWTS.traj{path(is-1),path(is)}(end)]; dp=
     end
 
 end

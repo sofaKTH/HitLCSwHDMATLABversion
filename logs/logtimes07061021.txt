@@ -1,0 +1,9 @@
+Logfile logs/logtimes07061021.txt 
+ ------------------------- 
+ Initial time= 113.156250
+ Process 	 Computation Time
+ Environment setting 	 0.046875
+ Abstraction 	 7.593750	 118.906250
+ Visualization of Workspace 	 8.671875
+ TAhd Construction  	 0.078125	 135.203125
+ Product Construction 	 1.046875	 135.937500

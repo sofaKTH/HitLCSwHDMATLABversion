@@ -6,6 +6,7 @@ xmax=dWTS.R(2,1,:);
 ymin=dWTS.R(1,2,:);
 ymax=dWTS.R(2,2,:);
 
+s=0; %if x is not in a region 0 is returned
 for is=dWTS.S
     if xmin(is)<=x(1) && xmax(is)>=x(1) && ymin(is)<=x(2) && ymax(is)>=x(2)
         s=is;

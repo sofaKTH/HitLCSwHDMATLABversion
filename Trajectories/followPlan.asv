@@ -6,16 +6,14 @@ function [xq,t] = followPlan(s1,s2,env, dWTS,x0)
 %control input
  Ua11=full(dWTS.ux_11);Ua12=full(dWTS.ux_12);
  Ua21=full(dWTS.ux_21);Ua22=full(dWTS.ux_22);
- Ub1=full(dWTS.uk_1);Ub2=full(dWTS.uk_2);
+ Ub2=full(dWTS.uk_1);Ub1=full(dWTS.uk_2);
  
  %system dyn
  A=env.A+[Ua11(s1,s2) Ua12(s1,s2); Ua21(s1,s2) Ua22(s1,s2)];
  B=[Ub1(s1,s2); Ub2(s1,s2)];
 
- fprintf('A is [%f, %f; %f, %f]\n B is [%f; %f]\n',A(1,1), A(1,2), A(2,1), A(2,2),B(1), B(2));
- 
  %function (go until new region is reached)
- T=0.1; %any number is fine but too large is uneccessary
+ T=0.001; %any number is fine but too large is uneccessary
  xq=x0'; t=0;
  Opt    = odeset('Events', @myEvent);
  fprintf('\n-----------------\n Transition: %d-> %d\n------------\n',s1,s2);

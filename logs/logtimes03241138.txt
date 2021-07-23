@@ -5,3 +5,9 @@ Logfile logs/logtimes03241138.txt
  Environment setting 	 0.125000
  Abstraction 	 5.656250	 154.250000
  Visualization of Workspace 	 2.203125
+ Visualization of Workspace 	 0.390625
+ Abstraction 	 4.250000	 406.578125
+ Visualization of Workspace 	 0.125000
+ Abstraction 	 1.937500	 477.390625
+ Abstraction 	 1.453125	 485.406250
+ Abstraction 	 1.421875	 501.875000

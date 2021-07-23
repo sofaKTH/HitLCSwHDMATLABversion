@@ -1,4 +1,4 @@
-function [xq,t] = followPlan(s1,s2,env, dWTS,x0)
+function [xq,t] = mixedIC(s1,s2,env,dWTS,x0,uh,QT, t0, ds,eps)
 %returns trajectory xq and time vector t describing how the system evolves 
 %s1=current region, s2=next region, T=time duration, x0=initial
 %position=[x1;x2]
@@ -8,11 +8,10 @@ function [xq,t] = followPlan(s1,s2,env, dWTS,x0)
  Ua21=full(dWTS.ux_21);Ua22=full(dWTS.ux_22);
  Ub1=full(dWTS.uk_1);Ub2=full(dWTS.uk_2);
  
- %system dyn
- A=env.A+[Ua11(s1,s2) Ua12(s1,s2); Ua21(s1,s2) Ua22(s1,s2)];
- B=[Ub1(s1,s2); Ub2(s1,s2)];
-
- fprintf('A is [%f, %f; %f, %f]\n B is [%f; %f]\n',A(1,1), A(1,2), A(2,1), A(2,2),B(1), B(2));
+ Au=[Ua11(s1,s2) Ua12(s1,s2); Ua21(s1,s2) Ua22(s1,s2)];
+ Bu=[Ub1(s1,s2); Ub2(s1,s2)];
+ 
+ %surrounding
  
  %function (go until new region is reached)
  T=0.1; %any number is fine but too large is uneccessary
@@ -28,7 +27,13 @@ function [xq,t] = followPlan(s1,s2,env, dWTS,x0)
 fprintf('Done!\n');
 
     function [dx]=myfun(t,x)
-    dx=A*x+B;
+    dx1=env.A*x; %system dyn
+    dx2=uh; %human input
+    dx3=Au*x+Bu; %system control input
+    
+    %find dt
+    
+    
     end
     function [value, isterminal, direction] = myEvent(t, x)
         value      = (checkRegion(x,dWTS) ~=s1);

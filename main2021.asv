@@ -101,7 +101,7 @@ while taskComplete==0 && humanAbort==0
                     s2,checkRegion(x(:,end),dWTS));
                 break;
             else
-                fprintf('completed transition!\n');
+                fprintf('completed transition!\n');pause(2);
             end
         end
         %at this point the agent should have made the complete sparse
@@ -120,9 +120,7 @@ while taskComplete==0 && humanAbort==0
     end
 
     %check if accepting state is reached if yes, stop
-    if ismember(GS{end}.path(indp),Pr{end}.final) %agent is in an accepting state
-        taskComplete=1;
-    end
+    if 
 
 end
 

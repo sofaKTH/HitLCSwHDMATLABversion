@@ -2,7 +2,7 @@ function [ t ,xq, K] = simEvo( q1,q2,A,TS,x0,y0,T, Uh,QT,T0,dt,eps,umax )
 %UNTITLED Summary of this function goes here
 
  Ua11=full(TS.ux_11);Ua12=full(TS.ux_12);Ua21=full(TS.ux_21);Ua22=full(TS.ux_22);
- Ub1=full(TS.uk_1);Ub2=full(TS.uk_2);
+ Ub1=full(TS.uk_1);U21=full(TS.uk_2);
  a11=A(1,1);%+Ua11(q1,q2);
  a12=A(1,2);%+Ua12(q1,q2);
  a21=A(2,1);%+Ua21(q1,q2);
